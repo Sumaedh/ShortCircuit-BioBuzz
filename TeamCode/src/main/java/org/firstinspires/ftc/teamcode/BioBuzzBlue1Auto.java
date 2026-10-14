@@ -5,188 +5,141 @@ import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-// This import must match the package of YOUR Constants.java.
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-
+import java.util.Objects;
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
-import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
-@Autonomous(name = "BIOBUZZ Blue 1 Paths", group = "Autonomous")
+/** Blue 1: original route geometry with shooting and pickup actions. */
+@Autonomous(name = "BIOBUZZ Blue 1", group = "BIOBUZZ")
 public class BioBuzzBlue1Auto extends LinearOpMode {
-
-    // Controls the drivetrain and tracks the robot's position.
     private Follower follower;
+    private final BioBuzzMechanisms robot = new BioBuzzMechanisms();
+    private BioBuzzAutoActions actions;
 
-    // Pose inputs use inches for X/Y and degrees for heading.
+    // Provisional profile choices: select close/far after measuring shot distances.
+    private static final boolean INITIAL_SHOT_FAR = false;
+    private static final boolean MIDDLE_SHOT_FAR = false;
+    private static final boolean FINAL_SHOT_FAR = false;
+
+    // Inputs are inches/degrees. Red retains the existing 180-degree field rotation.
     private final PoseFactory poseFactory = PoseFactory.degrees();
+    private final Pose startPose = poseFactory.of(84.1051, 132.7, 270);
+    private final Pose sideApproach = poseFactory.of(125.5152, 94.1156, 0);
+    private final Pose sideControl = poseFactory.of(103.8315, 114.1313, 0);
+    private final Pose sidePickup = poseFactory.of(130.7, 94, 0);
+    private final Pose middleShot = poseFactory.of(81.4519, 23.2505, 90);
+    private final Pose middleControl = poseFactory.of(102.1051, 25.8104, 0);
+    private final Pose endApproach = poseFactory.of(94.3797, 14.0527, 270);
+    private final Pose endControl = poseFactory.of(97.7156, 27.3965, 0);
+    private final Pose endPickup = poseFactory.of(94.3797, 11, 270);
+    private final Pose finalShot = poseFactory.of(84.1051, 132.7, 270);
+    private final Pose returnControl = poseFactory.of(141.723, 54.7839, 0);
 
-    // Starting position and heading of the robot's center.
-    private final Pose startPose =
-            poseFactory.of(84.1051, 132.7, 270);
-
-    // Position just before the side-flower pickup.
-    private final Pose sideApproach =
-            poseFactory.of(125.5152, 94.1156, 0);
-
-    // Shapes the first curve; it is not a stop.
-    private final Pose sideControl =
-            poseFactory.of(103.8315, 114.1313, 0);
-
-    // End of the short straight side-flower approach.
-    private final Pose sidePickup =
-            poseFactory.of(130.7, 94, 0);
-
-    // Destination for the middle shooting position.
-    private final Pose middleShot =
-            poseFactory.of(81.4519, 23.2505, 90);
-
-    // Shapes the curve toward the middle shooting position.
-    private final Pose middleControl =
-            poseFactory.of(102.1051, 25.8104, 0);
-
-    // Position just before the end-flower pickup.
-    private final Pose endApproach =
-            poseFactory.of(94.3797, 14.0527, 270);
-
-    // Shapes the curve toward the end flower.
-    private final Pose endControl =
-            poseFactory.of(97.7156, 27.3965, 0);
-
-    // End of the straight end-flower approach.
-    private final Pose endPickup =
-            poseFactory.of(94.3797, 11, 270);
-
-    // Final driving destination.
-    private final Pose finalShot =
-            poseFactory.of(84.1051, 132.7, 270);
-
-    // Shapes the return curve; the robot need not pass through it.
-    private final Pose returnControl =
-            poseFactory.of(141.723, 54.7839, 0);
-
-    // Follows the six paths in order.
-    // This routine only drives; it does not operate intake or shooter.
+    // Nothing here executes while the sequence is being constructed.
     public Command autoRoutine() {
         return sequential(
-                follow(follower, path1()),
-                follow(follower, path2()),
-                follow(follower, path3()),
-                follow(follower, path4()),
-                follow(follower, path5()),
-                follow(follower, path6())
+                actions.shoot(INITIAL_SHOT_FAR, "Initial shot"),
+                actions.drive(path1(), "Green approach"),
+                actions.preparePickup(true),
+                actions.drive(path2(), "Straight first pickup"),
+                actions.finishPickup(),
+                actions.drive(path3(), "Indigo return"),
+                actions.shoot(MIDDLE_SHOT_FAR, "Middle shot"),
+                actions.drive(path4(), "Pink approach"),
+                actions.preparePickup(true),
+                actions.drive(path5(), "Straight end-flower pickup"),
+                actions.finishPickup(),
+                actions.drive(path6(), "Brown return"),
+                actions.shoot(FINAL_SHOT_FAR, "Final shot"),
+                instant(() -> robot.stopAllParametric())
         );
     }
 
-    @Override
-    public void runOpMode() {
-
-        // Clear any previous scheduler state.
+    @Override public void runOpMode() {
         Scheduler.reset();
-
-        // Create the follower using your robot's configuration.
-        follower = Constants.create(hardwareMap);
-
-        // Set the initial position estimate.
-        follower.setPose(startPose);
-        follower.update();
+        // Keep the drafts buildable, but do not run a guessed robot configuration.
+        try { BioBuzzConfig.validateAuto(); }
+        catch (IllegalStateException ex) {
+            telemetry.addLine(ex.getMessage()); telemetry.update();
+            waitForStart();
+            return;
+        }
 
         try {
-            // Wait for START on the Driver Station.
+            robot.init(hardwareMap);
+            // YOUR configured Pedro 3 factory; no localizer is invented in this package.
+            follower = Objects.requireNonNull(Constants.create(hardwareMap),
+                    "Configure your Pedro Constants.create() before running autonomous");
+            follower.setPose(startPose);
+            follower.update();
+            actions = new BioBuzzAutoActions(robot, follower);
+            Command routine = autoRoutine();
+            telemetry.addLine("Initialized; place robot at the specified start pose");
+            telemetry.update();
             waitForStart();
+            if (isStopRequested()) return;
 
-            if (isStopRequested()) {
-                return;
-            }
-
-            // Schedule the routine once.
-            schedule(autoRoutine());
-
+            double startedAt = BioBuzzConfig.now();
+            schedule(routine);
             while (opModeIsActive()) {
-
-                // Update localization and drivetrain control.
+                double now = BioBuzzConfig.now();
                 follower.update();
-
-                // Advance the sequence as each path completes.
+                robot.update(now);
                 Scheduler.execute();
-
-                // Display the estimated robot position.
-                telemetry.addData("X", follower.pose().x());
-                telemetry.addData("Y", follower.pose().y());
-                telemetry.addData(
-                        "Heading (degrees)",
-                        Math.toDegrees(follower.pose().heading())
-                );
+                telemetry.addData("Auto action", actions.status());
+                telemetry.addData("X / Y", follower.pose().x() + " / " + follower.pose().y());
+                telemetry.addData("Heading degrees", Math.toDegrees(follower.pose().heading()));
+                robot.telemetry(telemetry);
                 telemetry.update();
-
+                if (routine.done()) break;
+                if (now - startedAt > BioBuzzConfig.AUTO_WATCHDOG_SECONDS) {
+                    throw new IllegalStateException("Autonomous watchdog expired");
+                }
                 idle();
             }
-
+        } catch (RuntimeException ex) {
+            telemetry.addData("AUTO STOPPED", ex.getMessage()); telemetry.update();
+            throw ex;
         } finally {
-            // Stop scheduled commands and drivetrain output on exit.
             Scheduler.reset();
-            follower.stop();
-            follower.drivetrain.stop();
+            robot.stopAll();
+            if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }
 
-    // GREEN: curve from the start to the side-flower approach.
-    // linear() changes heading along the curve; it does not straighten it.
+    // GREEN: start to side-flower approach.
     public Path path1() {
-        return Paths.curve(
-                startPose,
-                sideControl,
-                sideApproach
-        ).linear(startPose, sideApproach);
+        return Paths.curve(startPose, sideControl, sideApproach).heading(BioBuzzAutoActions.linearHeading(startPose, sideApproach));
     }
 
-    // Short straight approach to the side-flower pickup.
+    // Straight side-flower entry.
     public Path path2() {
-        return Paths.line(
-                sideApproach,
-                sidePickup
-        ).linear(sideApproach, sidePickup);
+        return Paths.line(sideApproach, sidePickup).heading(BioBuzzAutoActions.linearHeading(sideApproach, sidePickup));
     }
 
-    // INDIGO: curve from the side pickup to the middle shot position.
+    // INDIGO: side pickup to middle shot.
     public Path path3() {
-        return Paths.curve(
-                sidePickup,
-                middleControl,
-                middleShot
-        ).linear(sidePickup, middleShot);
+        return Paths.curve(sidePickup, middleControl, middleShot).heading(BioBuzzAutoActions.linearHeading(sidePickup, middleShot));
     }
 
-    // PINK: curve from the middle shot position to the end-flower approach.
+    // PINK: middle shot to end-flower approach.
     public Path path4() {
-        return Paths.curve(
-                middleShot,
-                endControl,
-                endApproach
-        ).linear(middleShot, endApproach);
+        return Paths.curve(middleShot, endControl, endApproach).heading(BioBuzzAutoActions.linearHeading(middleShot, endApproach));
     }
 
-    // Straight approach to the end-flower pickup.
+    // Straight end-flower entry.
     public Path path5() {
-        return Paths.line(
-                endApproach,
-                endPickup
-        ).linear(endApproach, endPickup);
+        return Paths.line(endApproach, endPickup).heading(BioBuzzAutoActions.linearHeading(endApproach, endPickup));
     }
 
-    // BROWN: return curve to the final shot position.
+    // BROWN: end pickup to final shot.
     public Path path6() {
-        return Paths.curve(
-                endPickup,
-                returnControl,
-                finalShot
-        ).linear(endPickup, finalShot);
+        return Paths.curve(endPickup, returnControl, finalShot).heading(BioBuzzAutoActions.linearHeading(endPickup, finalShot));
     }
 }
