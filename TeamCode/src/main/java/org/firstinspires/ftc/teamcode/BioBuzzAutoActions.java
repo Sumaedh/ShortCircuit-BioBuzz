@@ -19,9 +19,7 @@ public final class BioBuzzAutoActions {
     }
     public String status() { return status; }
 
-    // Pedro core 3.0.0 reports remaining fraction in Curve.pathCompletion().
-    // Calculate TRAVELED fraction explicitly so the requested start/end headings
-    // are not swapped. This also works with later versions that fix that method.
+
     public static Interpolator linearHeading(Pose from, Pose to) {
         final double start = from.heading();
         final double change = Angle.error(start, to.heading());
@@ -33,8 +31,7 @@ public final class BioBuzzAutoActions {
         };
     }
 
-    // The screenshot's Parametric methods execute now and return null.
-    // Always put them INSIDE an actual Runnable lambda, as below.
+
     public Command preparePickup(boolean flower) {
         return sequential(
                 instant(() -> {
@@ -67,7 +64,6 @@ public final class BioBuzzAutoActions {
                 .setDone(() -> BioBuzzConfig.now() - start[0] >= seconds);
     }
 
-    // A timed feed window is NOT a measured shot count. Both speed readings gate feeding.
     public Command shoot(boolean far, String label) {
         final double[] start = {0}, previous = {0}, fedSeconds = {0};
         return Command.build()
@@ -83,7 +79,6 @@ public final class BioBuzzAutoActions {
                     double now = BioBuzzConfig.now();
                     if (robot.shooter.isReady()) {
                         status = label + ": feed";
-                        // Accumulate only time spent with feed actually commanded, not spin-up time.
                         if (robot.intake.getPower() > 0) fedSeconds[0] += now - previous[0];
                         robot.beginFeedParametric();
                     } else {
@@ -100,8 +95,7 @@ public final class BioBuzzAutoActions {
                 .setEnd(reason -> { robot.endFeedParametric(); robot.shooter.shooterOffParametric(); });
     }
 
-    // Ivy 1.1.1's stock follow() uses parametric progress. This wrapper also waits
-    // for the follower to finish tracking and for the actual estimated pose to settle.
+
     public Command drive(Path path, String label) {
         final double[] start = {0}, settledSince = {Double.NaN};
         final Pose end = path.endPose();

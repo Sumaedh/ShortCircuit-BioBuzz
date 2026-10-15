@@ -48,7 +48,6 @@ public final class BioBuzzDrivetrain {
             if (motor != null) motor.setPower(0);
         }
     }
-    // Requested convention: execute immediately, then return null. See README before scheduling.
     public Runnable driveMecanumParametric(double y, double x, double r) { driveMecanum(y, x, r); return null; }
     public Runnable driveMecanumSlowerParametric(double y, double x, double r) { driveMecanumSlower(y, x, r); return null; }
     public Runnable stopParametric() { stop(); return null; }

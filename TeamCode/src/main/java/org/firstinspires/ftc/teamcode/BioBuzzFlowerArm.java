@@ -24,7 +24,6 @@ public final class BioBuzzFlowerArm {
         commandedPosition = position;
         if (!dryRun && servo != null) servo.setPosition(position);
     }
-    // Commanded position is not a measurement of actual mechanical position.
     public double getCommandedPosition() { return commandedPosition; }
     public Runnable armUpParametric() { armUp(); return null; }
     public Runnable armDownParametric() { armDown(); return null; }

@@ -22,7 +22,6 @@ public final class BioBuzzBallSensors {
         detectedSecond = dryRun ? simulatedSecond : second.getState() == BioBuzzConfig.SENSOR_2_ACTIVE_HIGH;
         boolean detected = BioBuzzConfig.FULL_REQUIRES_BOTH
                 ? detectedFirst && detectedSecond : detectedFirst || detectedSecond;
-        // Block immediately. Require a sustained clear reading before releasing the full indication.
         if (detected) { full = true; clearSince = Double.NaN; }
         else {
             if (Double.isNaN(clearSince)) clearSince = now;

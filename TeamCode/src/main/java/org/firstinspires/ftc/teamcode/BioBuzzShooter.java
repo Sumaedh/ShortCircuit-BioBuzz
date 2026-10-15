@@ -31,7 +31,6 @@ public final class BioBuzzShooter {
         }
     }
     public void shooterClose() {
-        // These fallback speeds exist ONLY for a simulated telemetry preview.
         setVelocity(dryRun && BioBuzzConfig.CLOSE_TPS == 0 ? 1000 : BioBuzzConfig.CLOSE_TPS);
     }
     public void shooterFar() {

@@ -66,14 +66,12 @@ public class BioBuzzTeleopStates extends OpMode {
             previousA = in.a; previousY = in.y;
             robot.sensors.update(now);
 
-            // Driving remains available while any mechanism state is active.
             driveState = in.slow ? DriveState.SLOW : DriveState.NORMAL;
             switch (driveState) {
                 case SLOW: drive.driveMecanumSlower(in.leftY, in.leftX, in.rightX); break;
                 case NORMAL: drive.driveMecanum(in.leftY, in.leftX, in.rightX); break;
             }
 
-            // Both shooter selectors together means OFF, matching your earlier controls.
             shooterState = in.stop || in.close == in.far ? ShooterState.OFF
                     : in.close ? ShooterState.CLOSE : ShooterState.FAR;
             switch (shooterState) {
@@ -83,14 +81,11 @@ public class BioBuzzTeleopStates extends OpMode {
             }
             robot.shooter.update(now);
 
-            // Stop wins over reverse; reverse wins over intake-on.
             if (in.stop || in.b) intakeState = IntakeState.OFF;
             else if (in.x) intakeState = IntakeState.REVERSE;
             else if (aPressed) intakeState = robot.sensors.isFull() ? IntakeState.FULL : IntakeState.ON;
             if (intakeState == IntakeState.ON && robot.sensors.isFull()) intakeState = IntakeState.FULL;
-            // FULL stays latched until A is pressed again after clearing, or B/X is used.
 
-            // Y toggles arm position once per press; D-pad down explicitly stows it.
             if (in.stop || in.stow) armState = ArmState.UP;
             else if (yPressed) armState = armState == ArmState.UP ? ArmState.DOWN : ArmState.UP;
             switch (armState) {

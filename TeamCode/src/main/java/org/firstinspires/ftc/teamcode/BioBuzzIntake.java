@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-/** Both transfer/intake motors work together, with one motor direction reversed. */
 public final class BioBuzzIntake {
     private DcMotor left, right;
     private final boolean dryRun = BioBuzzConfig.DRY_RUN;

@@ -7,9 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public final class BioBuzzConfig {
     private BioBuzzConfig() { }
 
-    // Preview TeleOp states without mapping or commanding ANY hardware.
     public static boolean DRY_RUN = true;
-    // Set true only after verifying wiring, directions, servo travel and speeds.
     public static boolean HARDWARE_SETTINGS_CONFIRMED = false;
     public static boolean AUTO_SETTINGS_CONFIRMED = false;
 
@@ -27,20 +25,16 @@ public final class BioBuzzConfig {
     public static final String FULL_SENSOR_1 = "fullSensor1";
     public static final String FULL_SENSOR_2 = "fullSensor2";
 
-    // Drivetrain directions retain your earlier mecanum setup; verify on this build.
     public static DcMotorSimple.Direction LEFT_DRIVE_DIRECTION = DcMotorSimple.Direction.REVERSE;
     public static DcMotorSimple.Direction RIGHT_DRIVE_DIRECTION = DcMotorSimple.Direction.FORWARD;
-    // One transfer/intake motor is reversed, as requested.
     public static DcMotorSimple.Direction INTAKE_LEFT_DIRECTION = DcMotorSimple.Direction.FORWARD;
     public static DcMotorSimple.Direction INTAKE_RIGHT_DIRECTION = DcMotorSimple.Direction.REVERSE;
-    // UNKNOWN until assembly: FORWARD is only a placeholder for both shooters.
     public static DcMotorSimple.Direction SHOOTER_LEFT_DIRECTION = DcMotorSimple.Direction.FORWARD;
     public static DcMotorSimple.Direction SHOOTER_RIGHT_DIRECTION = DcMotorSimple.Direction.FORWARD;
     public static Servo.Direction SHOT_STOPPER_DIRECTION = Servo.Direction.FORWARD;
     public static Servo.Direction INTAKE_STOPPER_DIRECTION = Servo.Direction.FORWARD;
     public static Servo.Direction FLOWER_ARM_DIRECTION = Servo.Direction.FORWARD;
 
-    // Zero placeholders are NOT calibrated servo positions. Live validation rejects equal endpoints.
     public static double SHOT_BLOCKED = 0.0;
     public static double SHOT_OPEN = 0.0;
     public static double INTAKE_BLOCKED = 0.0;
@@ -50,24 +44,19 @@ public final class BioBuzzConfig {
 
     public static double INTAKE_POWER = 1.0;
     public static double TRANSFER_FEED_POWER = 1.0;
-    // Encoder ticks/second, NOT RPM. Measure and tune both motors on the built robot.
     public static double CLOSE_TPS = 0.0;
     public static double FAR_TPS = 0.0;
     public static double SHOOTER_TOLERANCE_TPS = 75.0;
     public static double SHOOTER_READY_SECONDS = 0.20;
-    // Keep the Hub's existing velocity PIDF unless measured coefficients are supplied.
     public static boolean USE_CUSTOM_SHOOTER_PIDF = false;
     public static double SHOOTER_P = 0, SHOOTER_I = 0, SHOOTER_D = 0, SHOOTER_F = 0;
 
-    // Assumption: goBILDA 3124-0001-0001, digital mode, HIGH means object detected.
-    // Both sensors must observe the fourth-ball/full-storage position, not the intake entrance.
+
     public static boolean SENSOR_1_ACTIVE_HIGH = true;
     public static boolean SENSOR_2_ACTIVE_HIGH = true;
-    // false = either sensor means full; true requires both. Confirm using actual placement.
     public static boolean FULL_REQUIRES_BOTH = false;
     public static double FULL_CLEAR_SECONDS = 0.10;
 
-    // Provisional timing/tolerances; tune before allowing live autonomous.
     public static double ARM_SETTLE_SECONDS = 0.40;
     public static double PICKUP_DWELL_SECONDS = 0.70;
     public static double AUTO_FEED_SECONDS = 1.50;
@@ -76,7 +65,6 @@ public final class BioBuzzConfig {
     public static double AUTO_POSITION_TOLERANCE_INCHES = 1.0;
     public static double AUTO_HEADING_TOLERANCE_DEGREES = 4.0;
     public static double AUTO_POSE_SETTLE_SECONDS = 0.15;
-    // Operational watchdog, not a claim about the game's legal autonomous duration.
     public static double AUTO_WATCHDOG_SECONDS = 30.0;
 
     public static double now() { return System.nanoTime() * 1e-9; }
@@ -137,7 +125,6 @@ public final class BioBuzzConfig {
                 "        commandedPosition = position;\n" +
                 "        if (!dryRun && servo != null) servo.setPosition(position);\n" +
                 "    }\n" +
-                "    // Commanded position is not a measurement of actual mechanical position.\n" +
                 "    public double getCommandedPosition() { return commandedPosition; }\n" +
                 "    public Runnable blockParametric() { block(); return null; }\n" +
                 "    public Runnable openParametric() { open(); return null; }\n" +

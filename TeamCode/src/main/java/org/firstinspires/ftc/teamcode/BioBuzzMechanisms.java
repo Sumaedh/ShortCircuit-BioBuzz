@@ -19,7 +19,6 @@ public final class BioBuzzMechanisms {
         shotStopper.init(map); intakeStopper.init(map); flowerArm.init(map);
         sensors.init(map);
     }
-    // Called every loop; leaves the FTC event loop free to run continuously.
     public void update(double now) {
         sensors.update(now);
         shooter.update(now);
@@ -29,7 +28,6 @@ public final class BioBuzzMechanisms {
             if (fullLatched) { intake.intakeOff(); intakeStopper.block(); }
             else { intakeStopper.open(); intake.intakeOn(); }
         } else if (feeding) {
-            // Close the entrance while the shared intake/transfer motors feed internally.
             intakeStopper.block();
             if (shooter.isReady()) { shotStopper.open(); intake.feedShooter(); }
             else { shotStopper.block(); intake.intakeOff(); }

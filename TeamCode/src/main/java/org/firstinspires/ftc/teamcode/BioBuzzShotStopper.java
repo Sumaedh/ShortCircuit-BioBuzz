@@ -24,7 +24,6 @@ public final class BioBuzzShotStopper {
         commandedPosition = position;
         if (!dryRun && servo != null) servo.setPosition(position);
     }
-    // Commanded position is not a measurement of actual mechanical position.
     public double getCommandedPosition() { return commandedPosition; }
     public Runnable blockParametric() { block(); return null; }
     public Runnable openParametric() { open(); return null; }
