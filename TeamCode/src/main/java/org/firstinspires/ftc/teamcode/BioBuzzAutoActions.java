@@ -9,116 +9,118 @@ import com.pedropathing.utils.Angle;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
-/** Mechanism actions and endpoint checks shared by all four autonomous files. */
-public final class BioBuzzAutoActions {
-    private final BioBuzzMechanisms robot;
+public class BioBuzzAutoActions {
     private final Follower follower;
+    private final BioBuzzIntake intake;
+    private final BioBuzzShooter shooter;
+    private final BioBuzzShotStopper shotStopper;
+    private final BioBuzzIntakeStopper intakeStopper;
+    private final BioBuzzFlowerArm arm;
+    private final BioBuzzBallSensors sensors;
+    private boolean collecting, fullLatched, failed;
     private String status = "Initialized";
-    public BioBuzzAutoActions(BioBuzzMechanisms robot, Follower follower) {
-        this.robot = robot; this.follower = follower;
-    }
-    public String status() { return status; }
 
+    public double ARM_SETTLE_SECONDS = 0.40;
+    public double PICKUP_DWELL_SECONDS = 0.70;
+    public double FEED_SECONDS = 1.50;
+    public double SHOT_TIMEOUT_SECONDS = 5.0;
+    public double PATH_TIMEOUT_SECONDS = 10.0;
+
+    public BioBuzzAutoActions(Follower follower, BioBuzzIntake intake, BioBuzzShooter shooter,
+                              BioBuzzShotStopper shotStopper, BioBuzzIntakeStopper intakeStopper,
+                              BioBuzzFlowerArm arm, BioBuzzBallSensors sensors) {
+        this.follower = follower; this.intake = intake; this.shooter = shooter;
+        this.shotStopper = shotStopper; this.intakeStopper = intakeStopper;
+        this.arm = arm; this.sensors = sensors;
+    }
+
+    private static double now() { return System.nanoTime() * 1e-9; }
+    public String status() { return status; }
+    public boolean failed() { return failed; }
 
     public static Interpolator linearHeading(Pose from, Pose to) {
-        final double start = from.heading();
-        final double change = Angle.error(start, to.heading());
+        double start = from.heading();
+        double change = Angle.error(start, to.heading());
         return (curve, t) -> {
-            double length = curve.length();
-            double progress = length > 0 ? 1.0 - curve.remainingDistance(t) / length : t;
-            progress = Math.max(0.0, Math.min(1.0, progress));
-            return Angle.normalize(start + change * progress);
+            double progress = curve.length() > 0 ? 1.0 - curve.remainingDistance(t) / curve.length() : t;
+            return Angle.normalize(start + change * Math.max(0.0, Math.min(1.0, progress)));
         };
     }
 
+    public Command pause(double seconds) {
+        final double[] started = {0};
+        return Command.build().setStart(() -> started[0] = now())
+                .setDone(() -> now() - started[0] >= seconds);
+    }
 
     public Command preparePickup(boolean flower) {
         return sequential(
+                instant(() -> { status = "Prepare pickup"; stopMechanisms(); }),
+                instant(flower ? arm.armDownParametric() : arm.armUpParametric()),
+                pause(ARM_SETTLE_SECONDS),
                 instant(() -> {
-                    status = flower ? "Lower flower arm" : "Prepare corner pickup";
-                    robot.endFeedParametric();
-                    robot.shooter.shooterOffParametric();
-                    if (flower) robot.flowerArm.armDownParametric();
-                    else robot.flowerArm.armUpParametric();
-                }),
-                pause(BioBuzzConfig.ARM_SETTLE_SECONDS),
-                instant(() -> { status = "Collecting"; robot.beginCollectParametric(); })
-        );
+                    status = "Collecting"; collecting = true; fullLatched = false;
+                    updateCollection();
+                }));
     }
+
+    public void updateCollection() {
+        if (!collecting) return;
+        if (sensors.isFull()) fullLatched = true;
+        if (fullLatched) { intake.intakeOff(); intakeStopper.block(); }
+        else { intakeStopper.open(); intake.intakeOn(); }
+    }
+
     public Command finishPickup() {
-        final double[] start = {0};
-        Command dwell = Command.build()
-                .setStart(() -> start[0] = BioBuzzConfig.now())
-                .setDone(() -> robot.collectionFull()
-                        || BioBuzzConfig.now() - start[0] >= BioBuzzConfig.PICKUP_DWELL_SECONDS);
-        return sequential(dwell,
-                instant(() -> {
-                    status = "Stop intake and stow arm";
-                    robot.endCollectParametric();
-                    robot.flowerArm.armUpParametric();
-                }), pause(BioBuzzConfig.ARM_SETTLE_SECONDS));
-    }
-    public Command pause(double seconds) {
-        final double[] start = {0};
-        return Command.build().setStart(() -> start[0] = BioBuzzConfig.now())
-                .setDone(() -> BioBuzzConfig.now() - start[0] >= seconds);
+        final double[] started = {0};
+        return sequential(
+                Command.build().setStart(() -> started[0] = now())
+                        .setDone(() -> fullLatched || now() - started[0] >= PICKUP_DWELL_SECONDS),
+                instant(() -> { status = "Stow after pickup"; stopMechanisms(); }),
+                pause(ARM_SETTLE_SECONDS));
     }
 
     public Command shoot(boolean far, String label) {
-        final double[] start = {0}, previous = {0}, fedSeconds = {0};
-        return Command.build()
-                .requiring(robot)
+        final double[] started = {0}, last = {0}, fed = {0};
+        final boolean[] feeding = {false};
+        return Command.build().requiring(shooter, intake)
                 .setStart(() -> {
-                    status = label + ": spin up";
-                    robot.endCollectParametric(); robot.endFeedParametric();
-                    if (far) robot.shooter.shooterFarParametric();
-                    else robot.shooter.shooterCloseParametric();
-                    start[0] = previous[0] = BioBuzzConfig.now(); fedSeconds[0] = 0;
+                    status = label; stopMechanisms();
+                    shooter.setCurTargetVelocity(far ? "long" : "short", 0);
+                    started[0] = last[0] = now(); fed[0] = 0; feeding[0] = false;
                 })
                 .setExecute(() -> {
-                    double now = BioBuzzConfig.now();
-                    if (robot.shooter.isReady()) {
-                        status = label + ": feed";
-                        if (robot.intake.getPower() > 0) fedSeconds[0] += now - previous[0];
-                        robot.beginFeedParametric();
-                    } else {
-                        status = label + ": waiting for speed";
-                        robot.endFeedParametric();
-                    }
-                    previous[0] = now;
-                    if (now - start[0] > BioBuzzConfig.AUTO_SHOT_TIMEOUT_SECONDS
-                            && fedSeconds[0] < BioBuzzConfig.AUTO_FEED_SECONDS) {
-                        throw new IllegalStateException(label + " timed out before completing the feed window");
+                    double time = now();
+                    if (feeding[0]) fed[0] += time - last[0];
+                    last[0] = time;
+                    feeding[0] = shooter.shooterAtTarget();
+                    if (feeding[0]) { shotStopper.open(); intake.feedShooter(); }
+                    else { shotStopper.block(); intake.intakeOff(); }
+                    if (time - started[0] > SHOT_TIMEOUT_SECONDS && fed[0] < FEED_SECONDS) {
+                        failed = true; status = label + " timed out"; stopMechanisms();
                     }
                 })
-                .setDone(() -> fedSeconds[0] >= BioBuzzConfig.AUTO_FEED_SECONDS)
-                .setEnd(reason -> { robot.endFeedParametric(); robot.shooter.shooterOffParametric(); });
+                .setDone(() -> !failed && fed[0] >= FEED_SECONDS)
+                .setEnd(reason -> stopMechanisms());
     }
 
-
     public Command drive(Path path, String label) {
-        final double[] start = {0}, settledSince = {Double.NaN};
-        final Pose end = path.endPose();
+        final double[] started = {0};
         return Command.build().requiring(follower)
-                .setStart(() -> {
-                    status = label; start[0] = BioBuzzConfig.now(); settledSince[0] = Double.NaN;
-                    follower.follow(path);
-                })
+                .setStart(() -> { status = label; started[0] = now(); follower.follow(path); })
                 .setDone(() -> {
-                    double now = BioBuzzConfig.now();
-                    Pose actual = follower.pose();
-                    double angle = Math.atan2(Math.sin(end.heading() - actual.heading()),
-                            Math.cos(end.heading() - actual.heading()));
-                    boolean settled = !follower.following()
-                            && Math.hypot(end.x() - actual.x(), end.y() - actual.y()) <= BioBuzzConfig.AUTO_POSITION_TOLERANCE_INCHES
-                            && Math.abs(Math.toDegrees(angle)) <= BioBuzzConfig.AUTO_HEADING_TOLERANCE_DEGREES;
-                    if (!settled) settledSince[0] = Double.NaN;
-                    else if (Double.isNaN(settledSince[0])) settledSince[0] = now;
-                    if (settled && now - settledSince[0] >= BioBuzzConfig.AUTO_POSE_SETTLE_SECONDS) return true;
-                    if (now - start[0] > BioBuzzConfig.AUTO_PATH_TIMEOUT_SECONDS) {
-                        throw new IllegalStateException(label + " timed out before reaching its endpoint");
+                    if (failed) return false;
+                    if (!follower.following()) return true;
+                    if (now() - started[0] > PATH_TIMEOUT_SECONDS) {
+                        failed = true; status = label + " timed out"; stopMechanisms();
                     }
                     return false;
                 });
+    }
+
+    public void stopMechanisms() {
+        collecting = false;
+        intake.intakeOff(); shooter.stopShooter();
+        shotStopper.block(); intakeStopper.block(); arm.armUp();
     }
 }

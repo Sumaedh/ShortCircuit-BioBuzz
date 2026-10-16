@@ -10,21 +10,25 @@ import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-import java.util.Objects;
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
-/** Red 1: original route geometry with shooting and pickup actions. */
 @Autonomous(name = "BIOBUZZ Red 1", group = "BIOBUZZ")
 public class BioBuzzRed1Auto extends LinearOpMode {
     private Follower follower;
-    private final BioBuzzMechanisms robot = new BioBuzzMechanisms();
+    private final BioBuzzIntake in = new BioBuzzIntake();
+    private final BioBuzzShooter sh = new BioBuzzShooter();
+    private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
+    private final BioBuzzIntakeStopper intakeStopper = new BioBuzzIntakeStopper();
+    private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
+    private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
     private BioBuzzAutoActions actions;
 
     private static final boolean INITIAL_SHOT_FAR = false;
     private static final boolean MIDDLE_SHOT_FAR = false;
     private static final boolean FINAL_SHOT_FAR = false;
+    private static final double AUTO_WATCHDOG_SECONDS = 30.0;
 
     private final PoseFactory poseFactory = PoseFactory.degrees().mirrorX(70.75).mirrorY(70.75);
     private final Pose startPose = poseFactory.of(84.1051, 132.7, 270);
@@ -41,69 +45,73 @@ public class BioBuzzRed1Auto extends LinearOpMode {
 
     public Command autoRoutine() {
         return sequential(
-                actions.shoot(INITIAL_SHOT_FAR, "Initial shot"),
-                actions.drive(path1(), "Green approach"),
+                actions.shoot(INITIAL_SHOT_FAR, "First shot"),
+                actions.drive(path1(), "Approach"),
                 actions.preparePickup(true),
                 actions.drive(path2(), "Straight first pickup"),
                 actions.finishPickup(),
-                actions.drive(path3(), "Indigo return"),
+                actions.drive(path3(), "Return"),
                 actions.shoot(MIDDLE_SHOT_FAR, "Middle shot"),
-                actions.drive(path4(), "Pink approach"),
+                actions.drive(path4(), "Approach"),
                 actions.preparePickup(true),
                 actions.drive(path5(), "Straight end-flower pickup"),
                 actions.finishPickup(),
-                actions.drive(path6(), "Brown return"),
+                actions.drive(path6(), "Return"),
                 actions.shoot(FINAL_SHOT_FAR, "Final shot"),
-                instant(() -> robot.stopAllParametric())
+                instant(actions::stopMechanisms)
         );
     }
 
     @Override public void runOpMode() {
         Scheduler.reset();
-        try { BioBuzzConfig.validateAuto(); }
-        catch (IllegalStateException ex) {
-            telemetry.addLine(ex.getMessage()); telemetry.update();
-            waitForStart();
-            return;
-        }
-
         try {
-            robot.init(hardwareMap);
-            follower = Objects.requireNonNull(Constants.create(hardwareMap),
-                    "Configure your Pedro Constants.create() before running autonomous");
+            in.initIntake(hardwareMap);
+            sh.initShooter(hardwareMap);
+            shotStopper.initShotStopper(hardwareMap);
+            intakeStopper.initIntakeStopper(hardwareMap);
+            arm.initFlowerArm(hardwareMap);
+            sensors.initSensors(hardwareMap);
+
+            follower = Constants.create(hardwareMap);
+            if (follower == null) {
+                telemetry.addLine("Pedro Constants.create() did not provide a Follower");
+                telemetry.update();
+                return;
+            }
             follower.setPose(startPose);
             follower.update();
-            actions = new BioBuzzAutoActions(robot, follower);
+            actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, intakeStopper, arm, sensors);
             Command routine = autoRoutine();
-            telemetry.addLine("Initialized; place robot at the specified start pose");
+            telemetry.addLine("Initialized - place robot at start pose");
             telemetry.update();
             waitForStart();
             if (isStopRequested()) return;
 
-            double startedAt = BioBuzzConfig.now();
+            double startTime = System.nanoTime() * 1e-9;
             schedule(routine);
             while (opModeIsActive()) {
-                double now = BioBuzzConfig.now();
                 follower.update();
-                robot.update(now);
+                sh.PIDFShootingLoop();
+                actions.updateCollection();
                 Scheduler.execute();
-                telemetry.addData("Auto action", actions.status());
+                telemetry.addData("Action", actions.status());
                 telemetry.addData("X / Y", follower.pose().x() + " / " + follower.pose().y());
                 telemetry.addData("Heading degrees", Math.toDegrees(follower.pose().heading()));
-                robot.telemetry(telemetry);
+                telemetry.addData("Shooter target", sh.curTargetVelocity);
+                telemetry.addData("Shooter left / right", sh.getVelocity() + " / " + sh.getVelocity2());
+                telemetry.addData("Storage full", sensors.isFull());
                 telemetry.update();
-                if (routine.done()) break;
-                if (now - startedAt > BioBuzzConfig.AUTO_WATCHDOG_SECONDS) {
-                    throw new IllegalStateException("Autonomous watchdog expired");
+                if (actions.failed() || routine.done()) break;
+                if (System.nanoTime() * 1e-9 - startTime > AUTO_WATCHDOG_SECONDS) {
+                    telemetry.addLine("Autonomous time limit reached"); telemetry.update();
+                    break;
                 }
                 idle();
             }
-        } catch (RuntimeException ex) {
-            telemetry.addData("AUTO STOPPED", ex.getMessage()); telemetry.update();
-            throw ex;
         } finally {
             Scheduler.reset();
-            robot.stopAll();
+            in.intakeOff(); sh.stopShooter();
+            shotStopper.block(); intakeStopper.block(); arm.armUp();
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }

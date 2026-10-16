@@ -3,118 +3,135 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-/** One-gamepad TeleOp with separate finite-state machines for each mechanism. */
 @TeleOp(name = "BIOBUZZ TeleOp States", group = "BIOBUZZ")
 public class BioBuzzTeleopStates extends OpMode {
-    private final BioBuzzDrivetrain drive = new BioBuzzDrivetrain();
-    private final BioBuzzMechanisms robot = new BioBuzzMechanisms();
-    private final States states = new States();
-    private final Input input = new Input();
+    BioBuzzDrivetrain dt = new BioBuzzDrivetrain();
+    BioBuzzIntake in = new BioBuzzIntake();
+    BioBuzzShooter sh = new BioBuzzShooter();
+    BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
+    BioBuzzIntakeStopper intakeStopper = new BioBuzzIntakeStopper();
+    BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
+    BioBuzzBallSensors sensors = new BioBuzzBallSensors();
+
+    enum DriveState { NORMAL, SLOW }
+    enum IntakeState { OFF, ON, REVERSE, FULL, FEED }
+    enum ShooterState { OFF, SHORT, LONG }
+    enum StopperState { BLOCKED, OPEN }
+    enum ArmState { UP, DOWN }
+
+    DriveState driveState = DriveState.NORMAL;
+    IntakeState intakeState = IntakeState.OFF;
+    ShooterState shooterState = ShooterState.OFF;
+    StopperState shotState = StopperState.BLOCKED;
+    StopperState intakeStopperState = StopperState.BLOCKED;
+    ArmState armState = ArmState.UP;
+    private boolean previousA, previousY;
 
     @Override public void init() {
-        BioBuzzConfig.validateLiveHardware();
-        try { drive.init(hardwareMap); robot.init(hardwareMap); }
-        catch (RuntimeException ex) { drive.stop(); robot.stopAll(); throw ex; }
-        telemetry.addLine(BioBuzzConfig.DRY_RUN ? "DRY RUN: no hardware is mapped or moved" : "Initialized");
-        telemetry.addLine("A intake | B off | X reverse | Y arm | D-pad up feed");
-    }
-    @Override public void loop() {
-        input.a = gamepad1.a; input.b = gamepad1.b; input.x = gamepad1.x; input.y = gamepad1.y;
-        input.feed = gamepad1.dpad_up; input.stow = gamepad1.dpad_down;
-        input.close = gamepad1.left_bumper; input.far = gamepad1.right_trigger > 0.75;
-        input.slow = gamepad1.left_trigger > 0.75; input.stop = gamepad1.back;
-        input.leftY = gamepad1.left_stick_y; input.leftX = gamepad1.left_stick_x;
-        input.rightX = gamepad1.right_stick_x;
-        if (BioBuzzConfig.DRY_RUN) {
-            robot.sensors.setSimulatedDetection(gamepad1.left_stick_button, gamepad1.right_stick_button);
-        }
-        states.update(input, robot, drive, BioBuzzConfig.now());
-        telemetry.addData("Drive state", states.driveState);
-        telemetry.addData("Intake state", states.intakeState);
-        telemetry.addData("Shooter state", states.shooterState);
-        telemetry.addData("Shot stopper state", states.shotGateState);
-        telemetry.addData("Intake stopper state", states.intakeGateState);
-        telemetry.addData("Flower arm state", states.armState);
-        robot.telemetry(telemetry);
+        dt.initDrivetrain(hardwareMap);
+        in.initIntake(hardwareMap);
+        sh.initShooter(hardwareMap);
+        shotStopper.initShotStopper(hardwareMap);
+        intakeStopper.initIntakeStopper(hardwareMap);
+        arm.initFlowerArm(hardwareMap);
+        sensors.initSensors(hardwareMap);
+        telemetry.addLine("Initialized - press START");
         telemetry.update();
     }
-    @Override public void stop() { drive.stop(); robot.stopAll(); }
 
-    // A small input snapshot also lets the FSM be tested without a Control Hub.
-    public static final class Input {
-        public boolean a, b, x, y, feed, stow, close, far, slow, stop;
-        public double leftY, leftX, rightX;
-    }
-    public enum DriveState { NORMAL, SLOW }
-    public enum IntakeState { OFF, ON, REVERSE, FULL }
-    public enum ShooterState { OFF, CLOSE, FAR }
-    public enum GateState { BLOCKED, OPEN }
-    public enum ArmState { UP, DOWN }
+    @Override public void loop() {
+        boolean aPressed = gamepad1.a && !previousA;
+        boolean yPressed = gamepad1.y && !previousY;
+        previousA = gamepad1.a;
+        previousY = gamepad1.y;
+        boolean full = sensors.isFull();
 
-    public static final class States {
-        public DriveState driveState = DriveState.NORMAL;
-        public IntakeState intakeState = IntakeState.OFF;
-        public ShooterState shooterState = ShooterState.OFF;
-        public GateState shotGateState = GateState.BLOCKED;
-        public GateState intakeGateState = GateState.BLOCKED;
-        public ArmState armState = ArmState.UP;
-        private boolean previousA, previousY;
-
-        public void update(Input in, BioBuzzMechanisms robot, BioBuzzDrivetrain drive, double now) {
-            boolean aPressed = in.a && !previousA;
-            boolean yPressed = in.y && !previousY;
-            previousA = in.a; previousY = in.y;
-            robot.sensors.update(now);
-
-            driveState = in.slow ? DriveState.SLOW : DriveState.NORMAL;
-            switch (driveState) {
-                case SLOW: drive.driveMecanumSlower(in.leftY, in.leftX, in.rightX); break;
-                case NORMAL: drive.driveMecanum(in.leftY, in.leftX, in.rightX); break;
-            }
-
-            shooterState = in.stop || in.close == in.far ? ShooterState.OFF
-                    : in.close ? ShooterState.CLOSE : ShooterState.FAR;
-            switch (shooterState) {
-                case CLOSE: robot.shooter.shooterClose(); break;
-                case FAR: robot.shooter.shooterFar(); break;
-                case OFF: robot.shooter.shooterOff(); break;
-            }
-            robot.shooter.update(now);
-
-            if (in.stop || in.b) intakeState = IntakeState.OFF;
-            else if (in.x) intakeState = IntakeState.REVERSE;
-            else if (aPressed) intakeState = robot.sensors.isFull() ? IntakeState.FULL : IntakeState.ON;
-            if (intakeState == IntakeState.ON && robot.sensors.isFull()) intakeState = IntakeState.FULL;
-
-            if (in.stop || in.stow) armState = ArmState.UP;
-            else if (yPressed) armState = armState == ArmState.UP ? ArmState.DOWN : ArmState.UP;
-            switch (armState) {
-                case UP: robot.flowerArm.armUp(); break;
-                case DOWN: robot.flowerArm.armDown(); break;
-            }
-
-            // A held feed request first stops collection, then waits for BOTH flywheels.
-            // B, X or Back cancel feeding. No ball-count assumption is made here.
-            boolean feedRequested = in.feed && !in.stop && !in.b && !in.x;
-            if (feedRequested) intakeState = IntakeState.OFF;
-            shotGateState = feedRequested && robot.shooter.isReady() ? GateState.OPEN : GateState.BLOCKED;
-            intakeGateState = !feedRequested && (intakeState == IntakeState.ON || intakeState == IntakeState.REVERSE)
-                    ? GateState.OPEN : GateState.BLOCKED;
-
-            switch (intakeState) {
-                case ON: robot.intake.intakeOn(); break;
-                case REVERSE: robot.intake.intakeReverse(); break;
-                case FULL:
-                case OFF: robot.intake.intakeOff(); break;
-            }
-            switch (intakeGateState) {
-                case OPEN: robot.intakeStopper.open(); break;
-                case BLOCKED: robot.intakeStopper.block(); break;
-            }
-            switch (shotGateState) {
-                case OPEN: robot.shotStopper.open(); robot.intake.feedShooter(); break;
-                case BLOCKED: robot.shotStopper.block(); break;
-            }
+        driveState = gamepad1.left_trigger > 0.75 ? DriveState.SLOW : DriveState.NORMAL;
+        switch (driveState) {
+            case NORMAL: dt.driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x); break;
+            case SLOW: dt.driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x); break;
         }
+
+        if (gamepad1.back) shooterState = ShooterState.OFF;
+        else if (gamepad1.right_trigger > 0.75) shooterState = ShooterState.LONG;
+        else if (gamepad1.left_bumper) shooterState = ShooterState.SHORT;
+        else shooterState = ShooterState.OFF;
+
+        switch (shooterState) {
+            case OFF: sh.setCurTargetVelocity("0", 0); break;
+            case SHORT: sh.setCurTargetVelocity("short", 0); break;
+            case LONG: sh.setCurTargetVelocity("long", 0); break;
+        }
+        sh.PIDFShootingLoop();
+
+        if (gamepad1.back || gamepad1.b) intakeState = IntakeState.OFF;
+        else if (gamepad1.x) intakeState = IntakeState.REVERSE;
+        else if (gamepad1.dpad_up) intakeState = IntakeState.FEED;
+        else if (intakeState == IntakeState.FEED) intakeState = IntakeState.OFF;
+        else if (aPressed) intakeState = full ? IntakeState.FULL : IntakeState.ON;
+        if (intakeState == IntakeState.ON && full) intakeState = IntakeState.FULL;
+
+        shotState = StopperState.BLOCKED;
+        intakeStopperState = StopperState.BLOCKED;
+        switch (intakeState) {
+            case OFF:
+            case FULL:
+                in.intakeOff();
+                break;
+            case ON:
+                in.intakeOn();
+                intakeStopperState = StopperState.OPEN;
+                break;
+            case REVERSE:
+                in.intakeReverse();
+                intakeStopperState = StopperState.OPEN;
+                break;
+            case FEED:
+                if (sh.shooterAtTarget()) {
+                    in.feedShooter();
+                    shotState = StopperState.OPEN;
+                } else {
+                    in.intakeOff();
+                }
+                break;
+        }
+
+        switch (shotState) {
+            case BLOCKED: shotStopper.block(); break;
+            case OPEN: shotStopper.open(); break;
+        }
+        switch (intakeStopperState) {
+            case BLOCKED: intakeStopper.block(); break;
+            case OPEN: intakeStopper.open(); break;
+        }
+
+        if (gamepad1.back || gamepad1.dpad_down) armState = ArmState.UP;
+        else if (yPressed) armState = armState == ArmState.UP ? ArmState.DOWN : ArmState.UP;
+        switch (armState) {
+            case UP: arm.armUp(); break;
+            case DOWN: arm.armDown(); break;
+        }
+
+        telemetry.addData("Drive", driveState);
+        telemetry.addData("Intake", intakeState);
+        telemetry.addData("Shooter", shooterState);
+        telemetry.addData("Shot stopper", shotState);
+        telemetry.addData("Intake stopper", intakeStopperState);
+        telemetry.addData("Flower arm", armState);
+        telemetry.addData("Storage full", full);
+        telemetry.addData("Shooter target", sh.curTargetVelocity);
+        telemetry.addData("Shooter left", sh.getVelocity());
+        telemetry.addData("Shooter right", sh.getVelocity2());
+        telemetry.addData("Both shooters ready", sh.shooterAtTarget());
+        telemetry.update();
+    }
+
+    @Override public void stop() {
+        dt.stop();
+        in.intakeOff();
+        sh.stopShooter();
+        shotStopper.block();
+        intakeStopper.block();
+        arm.armUp();
     }
 }
