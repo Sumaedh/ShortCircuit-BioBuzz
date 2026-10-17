@@ -115,8 +115,8 @@ public class BioBuzzTeleopStates extends OpMode {
         telemetry.addData("Drive", driveState);
         telemetry.addData("Intake", intakeState);
         telemetry.addData("Shooter", shooterState);
-        telemetry.addData("Shot stopper", shotState);
-        telemetry.addData("Intake stopper", intakeStopperState);
+        telemetry.addData("Shot shotStopper", shotState);
+        telemetry.addData("Intake shotStopper", intakeStopperState);
         telemetry.addData("Flower arm", armState);
         telemetry.addData("Storage full", full);
         telemetry.addData("Shooter target", sh.curTargetVelocity);
