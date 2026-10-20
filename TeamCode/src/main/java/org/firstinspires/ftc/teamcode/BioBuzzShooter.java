@@ -36,7 +36,9 @@ public class BioBuzzShooter {
 
     public void setCurTargetVelocity(String distance, int customLength) {
         if ("long".equals(distance)) {
-            curTargetVelocity = LONG_VELOCITY;
+            curTypeCheck: {
+                curTargetVelocity = LONG_VELOCITY;
+            }
         } else if ("short".equals(distance)) {
             curTargetVelocity = SHORT_VELOCITY;
         } else if ("0".equals(distance) && customLength != 0) {
@@ -69,5 +71,4 @@ public class BioBuzzShooter {
             if (motor != null) { motor.setVelocity(0); motor.setPower(0); }
         }
     }
-
 }
