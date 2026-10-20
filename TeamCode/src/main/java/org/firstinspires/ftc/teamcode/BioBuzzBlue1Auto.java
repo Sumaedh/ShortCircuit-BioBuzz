@@ -74,7 +74,6 @@ public class BioBuzzBlue1Auto extends LinearOpMode {
 
             follower = Constants.create(hardwareMap);
             if (follower == null) {
-                telemetry.addLine("Pedro Constants.create() did not provide a Follower");
                 telemetry.update();
                 return;
             }
@@ -82,7 +81,6 @@ public class BioBuzzBlue1Auto extends LinearOpMode {
             follower.update();
             actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, intakeStopper, arm, sensors);
             Command routine = autoRoutine();
-            telemetry.addLine("Initialized - place robot at start pose");
             telemetry.update();
             waitForStart();
             if (isStopRequested()) return;
