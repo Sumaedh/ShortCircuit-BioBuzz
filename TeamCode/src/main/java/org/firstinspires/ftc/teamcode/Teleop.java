@@ -9,7 +9,6 @@ public class Teleop extends OpMode {
     protected final IntakeTransferArm ita = new IntakeTransferArm();
     protected final Turret turret = new Turret();
     protected final Shooter sh = new Shooter();
-    protected final BioBuzzIntakeStopper intakeStopper = new BioBuzzIntakeStopper();
     protected final Sensors sensors = new Sensors();
 
     enum DriveState { NORMAL, SLOW }
@@ -39,7 +38,6 @@ public class Teleop extends OpMode {
         dt.initDrivetrain(hardwareMap);
         ita.initIntakeTransfer(hardwareMap);
         sh.initShooter(hardwareMap);
-        intakeStopper.initIntakeStopper(hardwareMap);
         turret.initTurret(hardwareMap);
         sensors.initStorage(hardwareMap);
         if (enableLimelight) sensors.initLimelight(hardwareMap);
@@ -162,10 +160,6 @@ public class Teleop extends OpMode {
             case BLOCKED: ita.stopShoot(); break;
             case OPEN: ita.continueShoot(); break;
         }
-        switch (intakeStopperState) {
-            case BLOCKED: intakeStopper.block(); break;
-            case OPEN: intakeStopper.open(); break;
-        }
 
         boolean blockArm = !sensors.storageReady() || sensors.isFull()
                 || intakeState == IntakeState.FULL || intakeState == IntakeState.SENSOR_FAULT;
@@ -230,9 +224,7 @@ public class Teleop extends OpMode {
         dt.stop();
         ita.intakeOff();
         sh.stopShooter();
-        ita.stopShoot();
-        intakeStopper.block();
-        ita.armUp();
+        ita.stopShoot();ita.armUp();
         turret.center();
         sensors.close();
     }
