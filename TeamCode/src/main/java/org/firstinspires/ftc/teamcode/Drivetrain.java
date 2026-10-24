@@ -6,48 +6,48 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Drivetrain {
-
-    DcMotorEx frontLeft;
-    DcMotorEx frontRight;
-    DcMotorEx backLeft;
-    DcMotorEx backRight;
+    DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    public double NORMAL_SCALE = 1.0;
+    public double SLOW_SCALE = 1.0 / 3.0;
 
     public void initDrivetrain(HardwareMap hwMap) {
         frontLeft = hwMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hwMap.get(DcMotorEx.class, "frontRight");
         backLeft = hwMap.get(DcMotorEx.class, "backLeft");
         backRight = hwMap.get(DcMotorEx.class, "backRight");
-        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        for (DcMotor motor : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
+            motor.setPower(0);
+            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
     }
 
-    public void driveMecanum(double left_y, double left_x, double right_x){
-        double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
-        frontRight.setPower((-left_y - left_x - right_x) / maxPower);
-        backLeft.setPower((-left_y - left_x + right_x) / maxPower);
-        backRight.setPower((-left_y + left_x - right_x) / maxPower);
+    public void driveMecanum(double leftY, double leftX, double rightX) {
+        drive(leftY, leftX, rightX, NORMAL_SCALE);
     }
 
-    public void driveMecanumSlower(double left_y, double left_x, double right_x){
-        double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower(((-left_y + left_x + right_x) / maxPower) / 3);
-        frontRight.setPower(((-left_y - left_x - right_x) / maxPower) / 3);
-        backLeft.setPower(((-left_y - left_x + right_x) / maxPower) / 3);
-        backRight.setPower(((-left_y + left_x - right_x) / maxPower) / 3);
+    public void driveMecanumSlower(double leftY, double leftX, double rightX) {
+        drive(leftY, leftX, rightX, SLOW_SCALE);
     }
+
+    private void drive(double y, double x, double turn, double scale) {
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(turn), 1.0);
+        frontLeft.setPower((-y + x + turn) / denominator * scale);
+        frontRight.setPower((-y - x - turn) / denominator * scale);
+        backLeft.setPower((-y - x + turn) / denominator * scale);
+        backRight.setPower((-y + x - turn) / denominator * scale);
+    }
+
+    public void stop() {
+        for (DcMotor motor : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
+            if (motor != null) motor.setPower(0);
+        }
+    }
+
 }

@@ -79,6 +79,8 @@ public class BioBuzzBlue1Auto extends LinearOpMode {
             }
             follower.setPose(startPose);
             follower.update();
+
+            // Instantiates actions with all 7 required hardware subsystems
             actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, intakeStopper, arm, sensors);
             Command routine = autoRoutine();
             telemetry.update();
@@ -100,16 +102,21 @@ public class BioBuzzBlue1Auto extends LinearOpMode {
                 telemetry.addData("Storage full", sensors.isFull());
                 telemetry.update();
                 if (actions.failed() || routine.done()) break;
-                if (System.nanoTime() * 1e-9 - startTime > AUTO_WATCHDOG_SECONDS) {
-                    telemetry.addLine("Autonomous time limit reached"); telemetry.update();
+
+                if ((System.nanoTime() * 1e-9) - startTime > AUTO_WATCHDOG_SECONDS) {
+                    telemetry.addLine("Autonomous time limit reached");
+                    telemetry.update();
                     break;
                 }
                 idle();
             }
         } finally {
             Scheduler.reset();
-            in.intakeOff(); sh.stopShooter();
-            shotStopper.block(); intakeStopper.block(); arm.armUp();
+            in.intakeOff();
+            sh.stopShooter();
+            shotStopper.block();
+            intakeStopper.block();
+            arm.armUp();
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }
