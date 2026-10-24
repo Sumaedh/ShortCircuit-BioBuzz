@@ -3,13 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
@@ -17,11 +18,9 @@ import static com.pedropathing.ivy.groups.Groups.sequential;
 @Autonomous(name = "BIOBUZZ Red 2", group = "BIOBUZZ")
 public class Red2Auto extends LinearOpMode {
     private Follower follower;
-    private final BioBuzzIntake in = new BioBuzzIntake();
-    private final BioBuzzShooter sh = new BioBuzzShooter();
-    private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
-    private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
-    private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
+    private final IntakeTransferArm in = new IntakeTransferArm();
+    private final Shooter sh = new Shooter();
+    private final Sensors sensors = new Sensors();
     private AutoActions actions;
 
     private static final boolean INITIAL_SHOT_FAR = false;
@@ -66,10 +65,8 @@ public class Red2Auto extends LinearOpMode {
     @Override public void runOpMode() {
         Scheduler.reset();
         try {
-            in.initIntake(hardwareMap);
+            in.initIntakeTransfer(hardwareMap);
             sh.initShooter(hardwareMap);
-            shotStopper.initShotStopper(hardwareMap);
-            arm.initFlowerArm(hardwareMap);
             sensors.initSensors(hardwareMap);
 
             follower = Constants.create(hardwareMap);
@@ -79,7 +76,7 @@ public class Red2Auto extends LinearOpMode {
             }
             follower.setPose(startPose);
             follower.update();
-            actions = new AutoActions(follower, in, sh, shotStopper, arm, sensors);
+            actions = new AutoActions(follower, in, sh, sensors);
             Command routine = autoRoutine();
             telemetry.update();
             waitForStart();
@@ -109,7 +106,7 @@ public class Red2Auto extends LinearOpMode {
         } finally {
             Scheduler.reset();
             in.intakeOff(); sh.stopShooter();
-            shotStopper.block(); arm.armUp();
+            in.stopShoot(); in.armUp();
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }

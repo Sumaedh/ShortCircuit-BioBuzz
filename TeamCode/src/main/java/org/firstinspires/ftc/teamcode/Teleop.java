@@ -1,208 +1,179 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "BIOBUZZ TeleOp", group = "BIOBUZZ")
 public class Teleop extends OpMode {
-    private final BioBuzzDrivetrain drivetrain = new BioBuzzDrivetrain();
-    private final BioBuzzIntake intake = new BioBuzzIntake();
-    private final BioBuzzShooter shooter = new BioBuzzShooter();
-    private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
-    private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
-    private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
+    private enum ShooterState { OFF, READY, FEEDING }
+    private enum IntakeState { OFF, REVERSE, INTAKING, FULL }
+    private enum ArmState { UP, INTAKE_FLOWER, BLOCK }
+    private enum ShotDistance { SHORT, LONG }
 
-    private enum DriveState { NORMAL, SLOW }
-    private enum IntakeState { OFF, ON, REVERSE, FULL, FEED }
-    private enum ShooterState { OFF, SHORT, LONG }
-    private enum ArmState { UP, DOWN, BLOCK }
+    private final Drivetrain drivetrain = new Drivetrain();
+    private final IntakeTransferArm mechanisms = new IntakeTransferArm();
+    private final Shooter shooter = new Shooter();
+    private final Sensors sensors = new Sensors();
 
-    private DriveState driveState = DriveState.NORMAL;
     private IntakeState intakeState = IntakeState.OFF;
-    private ShooterState shooterState = ShooterState.OFF;
     private ArmState armState = ArmState.UP;
+    private ShooterState shooterState = ShooterState.OFF;
+    private ShotDistance shotDistance = ShotDistance.SHORT;
 
+    private boolean intakeEnabled = false;
+
+    private boolean previousRightBumper = false;
+    private boolean previousLeftBumper = false;
     private boolean previousA = false;
+    private boolean previousX = false;
     private boolean previousY = false;
+    private boolean previousB = false;
+    private boolean previousDpadUp = false;
 
     @Override
     public void init() {
         drivetrain.initDrivetrain(hardwareMap);
-        intake.initIntake(hardwareMap);
+        mechanisms.initIntakeTransfer(hardwareMap);
         shooter.initShooter(hardwareMap);
-        shotStopper.initShotStopper(hardwareMap);
-        arm.initFlowerArm(hardwareMap);
-
-        sensors.FULL_REQUIRES_BOTH = false;
         sensors.initSensors(hardwareMap);
 
-        telemetry.addLine("Initialized");
+        telemetry.addLine("Ready");
         telemetry.update();
     }
 
     @Override
     public void loop() {
-        sensors.update();
+        // Drive
+        drivetrain.driveMecanum(
+                gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                gamepad1.right_stick_x
+        );
 
-        boolean aPressed = gamepad1.a && !previousA;
-        boolean yPressed = gamepad1.y && !previousY;
-        previousA = gamepad1.a;
-        previousY = gamepad1.y;
-
-        boolean full = sensors.isFull();
-
-        updateDriveState();
-        updateShooterState();
-        updateIntakeState(aPressed, full);
-        updateArmState(yPressed, full);
-
-        applyDriveState();
-        applyShooterState();
-        applyIntakeState(full);
-        applyArmState();
-
-        telemetry.addData("Drive State", driveState);
-        telemetry.addData("Intake State", intakeState);
-        telemetry.addData("Shooter State", shooterState);
-        telemetry.addData("Flower Arm State", armState);
-        telemetry.addData("Storage Full", full);
-        sensors.addTelemetry(telemetry);
-        telemetry.update();
-    }
-
-    private void updateDriveState() {
-        driveState = (gamepad1.left_trigger > 0.75) ? DriveState.SLOW : DriveState.NORMAL;
-    }
-
-    private void updateShooterState() {
-        switch (shooterState) {
-            case OFF:
-                shooterState = (gamepad1.right_trigger > 0.75) ? ShooterState.LONG :
-                        (gamepad1.left_bumper ? ShooterState.SHORT : ShooterState.OFF);
-                break;
-            case SHORT:
-                shooterState = (gamepad1.back || !gamepad1.left_bumper) ? ShooterState.OFF :
-                        (gamepad1.right_trigger > 0.75 ? ShooterState.LONG : ShooterState.SHORT);
-                break;
-            case LONG:
-                shooterState = (gamepad1.back || gamepad1.right_trigger <= 0.75) ? ShooterState.OFF :
-                        (gamepad1.left_bumper ? ShooterState.SHORT : ShooterState.LONG);
-                break;
+        // Intake FSM
+        if (gamepad2.right_bumper && !previousRightBumper) {
+            intakeEnabled = !intakeEnabled;
         }
-    }
+        previousRightBumper = gamepad2.right_bumper;
 
-    private void updateIntakeState(boolean aPressed, boolean full) {
-        switch (intakeState) {
-            case OFF:
-                intakeState = gamepad1.x ? IntakeState.REVERSE :
-                        gamepad1.dpad_up ? IntakeState.FEED :
-                        aPressed ? (full ? IntakeState.FULL : IntakeState.ON) : IntakeState.OFF;
-                break;
-            case ON:
-                intakeState = (gamepad1.back || gamepad1.b) ? IntakeState.OFF :
-                        gamepad1.x ? IntakeState.REVERSE :
-                        gamepad1.dpad_up ? IntakeState.FEED :
-                        full ? IntakeState.FULL : IntakeState.ON;
-                break;
-            case REVERSE:
-                intakeState = (gamepad1.back || gamepad1.b || !gamepad1.x) ? IntakeState.OFF : IntakeState.REVERSE;
-                break;
-            case FULL:
-                intakeState = (gamepad1.back || gamepad1.b) ? IntakeState.OFF :
-                        gamepad1.x ? IntakeState.REVERSE :
-                        gamepad1.dpad_up ? IntakeState.FEED : IntakeState.FULL;
-                break;
-            case FEED:
-                intakeState = (gamepad1.back || gamepad1.b || !gamepad1.dpad_up) ? IntakeState.OFF : IntakeState.FEED;
-                break;
-        }
-    }
-
-    private void updateArmState(boolean yPressed, boolean full) {
-        switch (armState) {
-            case UP:
-                armState = full ? ArmState.BLOCK :
-                        gamepad1.dpad_left ? ArmState.BLOCK :
-                        yPressed ? ArmState.DOWN : ArmState.UP;
-                break;
-            case DOWN:
-                armState = (gamepad1.back || gamepad1.dpad_down) ? ArmState.UP :
-                        gamepad1.dpad_left ? ArmState.BLOCK :
-                        yPressed ? ArmState.UP : ArmState.DOWN;
-                break;
-            case BLOCK:
-                armState = (gamepad1.back || gamepad1.dpad_down) ? ArmState.UP :
-                        yPressed ? ArmState.DOWN : ArmState.BLOCK;
-                break;
-        }
-    }
-
-    private void applyDriveState() {
-        if (driveState == DriveState.NORMAL) {
-            drivetrain.driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        if (gamepad2.left_bumper) {
+            intakeState = IntakeState.REVERSE;
+        } else if (!intakeEnabled) {
+            intakeState = IntakeState.OFF;
+        } else if (sensors.isFull()) {
+            intakeState = IntakeState.FULL;
         } else {
-            drivetrain.driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            intakeState = IntakeState.INTAKING;
         }
-    }
 
-    private void applyShooterState() {
-        switch (shooterState) {
-            case OFF:
-                shooter.setCurTargetVelocity("0", 0);
-                break;
-            case SHORT:
-                shooter.setCurTargetVelocity("short", 0);
-                break;
-            case LONG:
-                shooter.setCurTargetVelocity("long", 0);
-                break;
+        // Arm FSM
+        if (gamepad2.x && !previousX) {
+            armState = ArmState.INTAKE_FLOWER;
+        } else if (gamepad2.y && !previousY) {
+            armState = ArmState.BLOCK;
+        } else if (gamepad2.b && !previousB) {
+            armState = ArmState.UP;
         }
-        shooter.PIDFShootingLoop();
-    }
+        previousX = gamepad2.x;
+        previousY = gamepad2.y;
+        previousB = gamepad2.b;
 
-    private void applyIntakeState(boolean full) {
+        // Shot distance FSM
+        if (gamepad2.dpad_up && !previousDpadUp) {
+            shotDistance = (shotDistance == ShotDistance.SHORT)
+                    ? ShotDistance.LONG
+                    : ShotDistance.SHORT;
+
+            if (shooterState != ShooterState.OFF) {
+                if (shotDistance == ShotDistance.LONG) {
+                    shooter.setCurTargetVelocity("long", 0);
+                } else {
+                    shooter.setCurTargetVelocity("short", 0);
+                }
+            }
+        }
+        previousDpadUp = gamepad2.dpad_up;
+
+        // Shooter FSM
+        if (gamepad2.a && !previousA) {
+            if (shooterState == ShooterState.OFF) {
+                shooterState = ShooterState.READY;
+            } else {
+                shooterState = ShooterState.OFF;
+            }
+
+            if (shooterState == ShooterState.READY) {
+                if (shotDistance == ShotDistance.LONG) {
+                    shooter.setCurTargetVelocity("long", 0);
+                } else {
+                    shooter.setCurTargetVelocity("short", 0);
+                }
+            }
+        }
+        previousA = gamepad2.a;
+
+        if (gamepad2.right_trigger > 0.25 && shooterState == ShooterState.READY) {
+            shooterState = ShooterState.FEEDING;
+        } else if (gamepad2.right_trigger <= 0.25 && shooterState == ShooterState.FEEDING) {
+            shooterState = ShooterState.READY;
+        }
+
         switch (intakeState) {
             case OFF:
-            case FULL:
-                intake.intakeOff();
-                break;
-            case ON:
-                intake.intakeOn();
+                mechanisms.intakeOff();
                 break;
             case REVERSE:
-                intake.intakeReverse();
+                mechanisms.intakeReverse();
                 break;
-            case FEED:
-                if (shooter.shooterAtTarget()) {
-                    intake.setPower(intake.FEED_POWER);
-                } else {
-                    intake.setPower(0);
-                }
+            case FULL:
+                mechanisms.intakeOff();
+                break;
+            case INTAKING:
+                mechanisms.intakeOn();
                 break;
         }
-    }
 
-    private void applyArmState() {
         switch (armState) {
             case UP:
-                arm.armUp();
+                mechanisms.armUp();
                 break;
-            case DOWN:
-                arm.armDown();
+            case INTAKE_FLOWER:
+                mechanisms.intakeFlower();
                 break;
             case BLOCK:
-                arm.armBlock();
+                mechanisms.armBlock();
                 break;
         }
-    }
 
-    @Override
-    public void stop() {
-        drivetrain.stop();
-        intake.intakeOff();
-        shooter.stopShooter();
-        shotStopper.block();
-        arm.armUp();
-        sensors.close();
+        switch (shooterState) {
+            case OFF:
+                shooter.stopShooter();
+                mechanisms.stopShoot();
+                break;
+            case READY:
+                if (shotDistance == ShotDistance.LONG) {
+                    shooter.setCurTargetVelocity("long", 0);
+                } else {
+                    shooter.setCurTargetVelocity("short", 0);
+                }
+                mechanisms.stopShoot();
+                break;
+            case FEEDING:
+                if (shotDistance == ShotDistance.LONG) {
+                    shooter.setCurTargetVelocity("long", 0);
+                } else {
+                    shooter.setCurTargetVelocity("short", 0);
+                }
+                mechanisms.continueShoot();
+                mechanisms.feedShooter();
+                break;
+        }
+
+        // Telemetry
+        telemetry.addData("Intake", intakeState);
+        telemetry.addData("Arm", armState);
+        telemetry.addData("Shooter", shooterState);
+        telemetry.addData("Distance", shotDistance);
+        telemetry.addData("Intake enabled", intakeEnabled);
+        telemetry.addData("Storage full", sensors.isFull());
+        telemetry.update();
     }
 }

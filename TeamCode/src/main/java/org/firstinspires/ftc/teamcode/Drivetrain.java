@@ -38,6 +38,7 @@ public class Drivetrain {
 
     private void drive(double y, double x, double turn, double scale) {
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(turn), 1.0);
+
         frontLeft.setPower((-y + x + turn) / denominator * scale);
         frontRight.setPower((-y - x - turn) / denominator * scale);
         backLeft.setPower((-y - x + turn) / denominator * scale);
@@ -46,8 +47,9 @@ public class Drivetrain {
 
     public void stop() {
         for (DcMotor motor : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
-            if (motor != null) motor.setPower(0);
+            if (motor != null) {
+                motor.setPower(0);
+            }
         }
     }
-
 }

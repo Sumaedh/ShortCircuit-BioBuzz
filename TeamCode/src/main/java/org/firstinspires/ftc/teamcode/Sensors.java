@@ -12,6 +12,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,18 +22,21 @@ public class Sensors {
     public enum StorageState { NOT_STARTED, CLEAR, FULL, FAULT }
     public enum CameraState { NOT_STARTED, MISSING, WAITING, NO_TARGET, TARGET, STALE, PAUSED }
 
-    public StorageMode STORAGE_MODE = StorageMode.DISTANCE_CM;  
+    public StorageMode STORAGE_MODE = StorageMode.DISTANCE_CM;
     public boolean FIRST_ACTIVE_HIGH = true;
     public boolean SECOND_ACTIVE_HIGH = true;
     public boolean FULL_REQUIRES_BOTH = false;
+
     public double FIRST_FULL_CM = 5.0;
     public double SECOND_FULL_CM = 5.0;
+
     public int LIMELIGHT_PIPELINE = 0;
     public int LIMELIGHT_POLL_HZ = 100;
     public double MAX_CAMERA_AGE_MS = 250;
 
     DigitalChannel first, second;
     DistanceSensor firstDistance, secondDistance;
+
     private StorageMode mappedMode;
     private Limelight3A limelight;
     private AprilTagProcessor aprilTags;
@@ -88,14 +92,17 @@ public class Sensors {
             webcamState = CameraState.MISSING;
             return;
         }
+
         aprilTags = new AprilTagProcessor.Builder()
                 .setTagLibrary(new AprilTagLibrary.Builder().build())
                 .build();
+
         portal = new VisionPortal.Builder()
                 .setCamera(webcam)
                 .addProcessor(aprilTags)
                 .enableLiveView(true)
                 .build();
+
         webcamState = CameraState.WAITING;
     }
 
@@ -127,17 +134,23 @@ public class Sensors {
             case DISTANCE_CM:
                 firstCm = firstDistance.getDistance(DistanceUnit.CM);
                 secondCm = secondDistance.getDistance(DistanceUnit.CM);
+
                 if (!validDistance(firstCm) || !validDistance(secondCm)) {
                     storageState = StorageState.FAULT;
-                    firstDetected = secondDetected = false;
+                    firstDetected = false;
+                    secondDetected = false;
                     return;
                 }
+
                 firstDetected = firstCm <= FIRST_FULL_CM;
                 secondDetected = secondCm <= SECOND_FULL_CM;
                 break;
         }
+
         boolean full = FULL_REQUIRES_BOTH
-                ? firstDetected && secondDetected : firstDetected || secondDetected;
+                ? firstDetected && secondDetected
+                : firstDetected || secondDetected;
+
         storageState = full ? StorageState.FULL : StorageState.CLEAR;
     }
 
@@ -147,6 +160,7 @@ public class Sensors {
 
     private void updateLimelight() {
         latestResult = limelight.getLatestResult();
+
         if (!limelight.isRunning()) {
             limelightState = CameraState.PAUSED;
         } else if (!limelight.isConnected() || latestResult == null) {
@@ -166,11 +180,13 @@ public class Sensors {
             detections = Collections.emptyList();
             return;
         }
+
         ArrayList<AprilTagDetection> fresh = aprilTags.getFreshDetections();
         if (fresh != null) {
             detections = new ArrayList<>(fresh);
             webcamFrameNanos = System.nanoTime();
         }
+
         if (webcamFrameNanos == 0) {
             webcamState = CameraState.WAITING;
         } else if (((System.nanoTime() - webcamFrameNanos) * 1e-6) > MAX_CAMERA_AGE_MS) {
@@ -181,7 +197,10 @@ public class Sensors {
         }
     }
 
-    public boolean isFull() { return storageState == StorageState.FULL; }
+    public boolean isFull() {
+        return storageState == StorageState.FULL;
+    }
+
     public boolean storageReady() {
         return storageState == StorageState.CLEAR || storageState == StorageState.FULL;
     }
@@ -190,22 +209,31 @@ public class Sensors {
         telemetry.addData("Storage", storageState);
         telemetry.addData("Storage input mode", mappedMode);
         telemetry.addData("Full sensor 1 / 2", firstDetected + " / " + secondDetected);
+
         if (mappedMode == StorageMode.DISTANCE_CM) {
             telemetry.addData("Sensor 1 / 2 cm", firstCm + " / " + secondCm);
         }
+
         telemetry.addData("Limelight", limelightState);
         telemetry.addData("Requested pipeline / accepted", LIMELIGHT_PIPELINE + " / " + pipelineAccepted);
+
         if (latestResult != null) {
             telemetry.addData("Limelight age ms", latestResult.getStaleness());
             telemetry.addData("Actual pipeline", latestResult.getPipelineIndex());
         }
+
         if (limelightState == CameraState.TARGET) {
             telemetry.addData("Limelight tx / ty degrees", latestResult.getTx() + " / " + latestResult.getTy());
             telemetry.addData("Limelight area percent", latestResult.getTa());
         }
+
         telemetry.addData("Logitech", webcamState);
+
         if (portal != null) telemetry.addData("Webcam stream", portal.getCameraState());
-        for (AprilTagDetection tag : detections) telemetry.addData("Webcam tag ID", tag);
+
+        for (AprilTagDetection tag : detections) {
+            telemetry.addData("Webcam tag ID", tag);
+        }
     }
 
     public void close() {

@@ -11,6 +11,7 @@ public class Shooter {
 
     public double fShooting = 21.5;
     public double pShooting = 500;
+
     public double curTargetVelocity = 0;
     public double LONG_VELOCITY = 1470;
     public double SHORT_VELOCITY = 1200;
@@ -22,15 +23,21 @@ public class Shooter {
 
         leftShootingMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         rightShootingMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
         for (DcMotorEx motor : new DcMotorEx[]{leftShootingMotor, rightShootingMotor}) {
             motor.setPower(0);
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
-                    new PIDFCoefficients(pShooting, 0, 0, fShooting));
+
+            motor.setPIDFCoefficients(
+                    DcMotor.RunMode.RUN_USING_ENCODER,
+                    new PIDFCoefficients(pShooting, 0, 0, fShooting)
+            );
+
             motor.setVelocity(0);
         }
+
         curTargetVelocity = 0;
     }
 
@@ -46,8 +53,13 @@ public class Shooter {
         }
     }
 
-    public double getVelocity() { return leftShootingMotor.getVelocity(); }
-    public double getVelocity2() { return rightShootingMotor.getVelocity(); }
+    public double getVelocity() {
+        return leftShootingMotor.getVelocity();
+    }
+
+    public double getVelocity2() {
+        return rightShootingMotor.getVelocity();
+    }
 
     public boolean shooterAtTarget() {
         return curTargetVelocity > 0
@@ -57,8 +69,10 @@ public class Shooter {
 
     public void PIDFShootingLoop() {
         for (DcMotorEx motor : new DcMotorEx[]{leftShootingMotor, rightShootingMotor}) {
-            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
-                    new PIDFCoefficients(pShooting, 0, 0, fShooting));
+            motor.setPIDFCoefficients(
+                    DcMotor.RunMode.RUN_USING_ENCODER,
+                    new PIDFCoefficients(pShooting, 0, 0, fShooting)
+            );
             motor.setVelocity(curTargetVelocity);
         }
     }
@@ -66,8 +80,10 @@ public class Shooter {
     public void stopShooter() {
         curTargetVelocity = 0;
         for (DcMotorEx motor : new DcMotorEx[]{leftShootingMotor, rightShootingMotor}) {
-            if (motor != null) { motor.setVelocity(0); motor.setPower(0); }
+            if (motor != null) {
+                motor.setVelocity(0);
+                motor.setPower(0);
+            }
         }
     }
-
 }
