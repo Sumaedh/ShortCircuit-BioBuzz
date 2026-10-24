@@ -38,6 +38,7 @@ public class BioBuzzTeleop extends OpMode {
         sensors.initSensors(hardwareMap);
         telemetry.addLine("Initialized - press START");
         telemetry.update();
+        telemetry.update();
     }
 
     @Override public void loop() {
@@ -197,7 +198,6 @@ public class BioBuzzTeleop extends OpMode {
                 intakeStopperState = StopperState.OPEN;
                 break;
             case FEED:
-                // Replaced conditional block with ternary function evaluation
                 executeFeedActions();
                 break;
         }
