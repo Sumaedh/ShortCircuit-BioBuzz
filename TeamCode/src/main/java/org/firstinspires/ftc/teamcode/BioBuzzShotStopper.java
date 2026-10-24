@@ -19,5 +19,4 @@ public class BioBuzzShotStopper {
     public void setPosition(double position) {
         if (servo != null) servo.setPosition(position);
     }
-
 }

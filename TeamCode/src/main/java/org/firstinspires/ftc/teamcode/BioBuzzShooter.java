@@ -36,9 +36,7 @@ public class BioBuzzShooter {
 
     public void setCurTargetVelocity(String distance, int customLength) {
         if ("long".equals(distance)) {
-            curTypeCheck: {
-                curTargetVelocity = LONG_VELOCITY;
-            }
+            curTargetVelocity = LONG_VELOCITY;
         } else if ("short".equals(distance)) {
             curTargetVelocity = SHORT_VELOCITY;
         } else if ("0".equals(distance) && customLength != 0) {

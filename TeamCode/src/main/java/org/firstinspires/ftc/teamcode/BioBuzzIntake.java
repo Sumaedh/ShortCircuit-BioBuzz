@@ -30,5 +30,4 @@ public class BioBuzzIntake {
         if (intakeLeft != null) intakeLeft.setPower(power);
         if (intakeRight != null) intakeRight.setPower(power);
     }
-
 }
