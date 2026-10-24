@@ -80,7 +80,6 @@ public class BioBuzzBlue1Auto extends LinearOpMode {
             follower.setPose(startPose);
             follower.update();
 
-            // Instantiates actions with all 7 required hardware subsystems
             actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, intakeStopper, arm, sensors);
             Command routine = autoRoutine();
             telemetry.update();

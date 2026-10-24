@@ -13,11 +13,15 @@ public class BioBuzzAutoActions {
     private enum CollectionState { OFF, COLLECTING, FULL }
     private enum ShotState { SPIN_UP, FEEDING, COMPLETE, FAILED }
     private enum DriveState { FOLLOWING, COMPLETE, FAILED }
+
     private final Follower follower;
-    private final IntakeTransferArm ita;
-    private final Shooter shooter;
+    private final BioBuzzIntake in;
+    private final BioBuzzShooter shooter;
+    private final BioBuzzShotStopper shotStopper;
     private final BioBuzzIntakeStopper intakeStopper;
-    private final Sensors sensors;
+    private final BioBuzzFlowerArm arm;
+    private final BioBuzzBallSensors sensors;
+
     private CollectionState collectionState = CollectionState.OFF;
     private boolean collectingFlower, failed;
     private String status = "Initialized";
@@ -28,16 +32,24 @@ public class BioBuzzAutoActions {
     public double SHOT_TIMEOUT_SECONDS = 5.0;
     public double PATH_TIMEOUT_SECONDS = 10.0;
 
-    public BioBuzzAutoActions(Follower follower, IntakeTransferArm ita, Shooter shooter,
-                              BioBuzzIntakeStopper intakeStopper, Sensors sensors) {
+    // 7-Argument Constructor matching BioBuzzBlue1Auto exactly
+    public BioBuzzAutoActions(Follower follower,
+                              BioBuzzIntake in,
+                              BioBuzzShooter shooter,
+                              BioBuzzShotStopper shotStopper,
+                              BioBuzzIntakeStopper intakeStopper,
+                              BioBuzzFlowerArm arm,
+                              BioBuzzBallSensors sensors) {
         this.follower = follower;
-        this.ita = ita;
+        this.in = in;
         this.shooter = shooter;
-        this.intakeStopper = intakeStopper; // Fixed: assigned the parameter correctly
+        this.shotStopper = shotStopper;
+        this.intakeStopper = intakeStopper;
+        this.arm = arm;
         this.sensors = sensors;
     }
 
-    private static double now() { return System.nanoTime() * 1e-9; } // Fixed: added multiplication operator
+    private static double now() { return System.nanoTime() * 1e-9; }
     public String status() { return status; }
     public boolean failed() { return failed; }
 
@@ -45,21 +57,21 @@ public class BioBuzzAutoActions {
         double start = from.heading();
         double change = Angle.error(start, to.heading());
         return (curve, t) -> {
-            double progress = curve.length() > 0 ? 1.0 - (curve.remainingDistance(t) / curve.length()) : t; // Fixed: added subtraction and division operators
-            return Angle.normalize(start + (change * Math.max(0.0, Math.min(1.0, progress)))); // Fixed: added multiplication operator
+            double progress = curve.length() > 0 ? 1.0 - (curve.remainingDistance(t) / curve.length()) : t;
+            return Angle.normalize(start + (change * Math.max(0.0, Math.min(1.0, progress))));
         };
     }
 
     private Command pause(double seconds) {
         final double[] started = {0};
         return Command.build().setStart(() -> started[0] = now())
-                .setDone(() -> (now() - started[0]) >= seconds); // Fixed: added subtraction operator
+                .setDone(() -> (now() - started[0]) >= seconds);
     }
 
     public Command preparePickup(boolean flower) {
         return sequential(
                 instant(() -> { status = "Prepare pickup"; stopMechanisms(); }),
-                instant(() -> { if (flower) ita.intakeFlower(); else ita.armUp(); }),
+                instant(() -> { if (flower) arm.armBlock(); else arm.armUp(); }),
                 pause(ARM_SETTLE_SECONDS),
                 instant(() -> {
                     status = "Collecting";
@@ -73,10 +85,6 @@ public class BioBuzzAutoActions {
         switch (collectionState) {
             case OFF: return;
             case COLLECTING:
-                if (!sensors.storageReady()) {
-                    fail("Storage sensor unavailable");
-                    return;
-                }
                 if (sensors.isFull()) collectionState = CollectionState.FULL;
                 break;
             case FULL: break;
@@ -84,12 +92,12 @@ public class BioBuzzAutoActions {
         switch (collectionState) {
             case COLLECTING:
                 intakeStopper.open();
-                ita.intakeOn();
+                in.intakeOn();
                 break;
             case FULL:
-                ita.intakeOff();
+                in.intakeOff();
                 intakeStopper.block();
-                if (collectingFlower) ita.armBlock();
+                if (collectingFlower) arm.armBlock();
                 break;
             case OFF: break;
         }
@@ -100,7 +108,7 @@ public class BioBuzzAutoActions {
         return sequential(
                 Command.build().setStart(() -> started[0] = now())
                         .setDone(() -> !failed && (collectionState == CollectionState.FULL
-                                || (now() - started[0]) >= PICKUP_DWELL_SECONDS)), // Fixed: added subtraction operator
+                                || (now() - started[0]) >= PICKUP_DWELL_SECONDS)),
                 instant(() -> { status = "Stow after pickup"; stopMechanisms(); }),
                 pause(ARM_SETTLE_SECONDS));
     }
@@ -108,7 +116,7 @@ public class BioBuzzAutoActions {
     public Command shoot(boolean far, String label) {
         final double[] started = {0}, last = {0}, fed = {0};
         final ShotState[] state = {ShotState.SPIN_UP};
-        return Command.build().requiring(shooter, ita)
+        return Command.build().requiring(shooter)
                 .setStart(() -> {
                     status = label;
                     stopMechanisms();
@@ -137,10 +145,18 @@ public class BioBuzzAutoActions {
                         fail(label + " timed out");
                     }
                     switch (state[0]) {
-                        case FEEDING: ita.continueShoot(); ita.feedShooter(); break;
-                        case SPIN_UP: ita.stopShoot(); ita.intakeOff(); break;
+                        case FEEDING:
+                            in.feedShooter();
+                            shotStopper.open();
+                            break;
+                        case SPIN_UP:
+                            in.intakeOff();
+                            shotStopper.block();
+                            break;
                         case COMPLETE:
-                        case FAILED: stopMechanisms(); break;
+                        case FAILED:
+                            stopMechanisms();
+                            break;
                     }
                 })
                 .setDone(() -> !failed && state[0] == ShotState.COMPLETE)
@@ -160,7 +176,7 @@ public class BioBuzzAutoActions {
                         case FOLLOWING:
                             if (failed) state[0] = DriveState.FAILED;
                             else if (!follower.following()) state[0] = DriveState.COMPLETE;
-                            else if ((now() - started[0]) > PATH_TIMEOUT_SECONDS) { // Fixed: added subtraction operator
+                            else if ((now() - started[0]) > PATH_TIMEOUT_SECONDS) {
                                 state[0] = DriveState.FAILED;
                                 fail(label + " timed out");
                             }
@@ -180,7 +196,10 @@ public class BioBuzzAutoActions {
 
     public void stopMechanisms() {
         collectionState = CollectionState.OFF;
-        ita.intakeOff(); shooter.stopShooter();
-        ita.stopShoot(); intakeStopper.block(); ita.armUp();
+        in.intakeOff();
+        shooter.stopShooter();
+        shotStopper.block();
+        intakeStopper.block();
+        arm.armUp();
     }
 }
