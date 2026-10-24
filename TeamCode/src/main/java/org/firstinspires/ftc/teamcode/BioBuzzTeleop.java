@@ -54,7 +54,7 @@ public class BioBuzzTeleop extends OpMode {
 
         executeDriveStateMachine();
         executeShooterStateMachine();
-        executeIntakeAndStopperStateMachine();
+        executeIntakeAndStopperStateMachine(full);
         executeArmStateMachine();
 
         sendTelemetry(full);
@@ -62,118 +62,102 @@ public class BioBuzzTeleop extends OpMode {
 
 
     private void updateDriveState() {
-        switch (driveState) {
-            case NORMAL:
-                if (gamepad1.left_trigger > 0.75) {
-                    driveState = DriveState.SLOW;
-                }
-                break;
-            case SLOW:
-                if (gamepad1.left_trigger <= 0.75) {
-                    driveState = DriveState.NORMAL;
-                }
-                break;
-        }
+        driveState = (gamepad1.left_trigger > 0.75) ? DriveState.SLOW : DriveState.NORMAL;
     }
 
     private void updateShooterState() {
         switch (shooterState) {
             case OFF:
-                if (gamepad1.right_trigger > 0.75) {
-                    shooterState = ShooterState.LONG;
-                } else if (gamepad1.left_bumper) {
-                    shooterState = ShooterState.SHORT;
-                }
+                shooterState = evaluateOffShooterState();
                 break;
             case SHORT:
-                if (gamepad1.back || !gamepad1.left_bumper) {
-                    shooterState = ShooterState.OFF;
-                } else if (gamepad1.right_trigger > 0.75) {
-                    shooterState = ShooterState.LONG;
-                }
+                shooterState = evaluateShortShooterState();
                 break;
             case LONG:
-                if (gamepad1.back || gamepad1.right_trigger <= 0.75) {
-                    shooterState = ShooterState.OFF;
-                } else if (gamepad1.left_bumper) {
-                    shooterState = ShooterState.SHORT;
-                }
+                shooterState = evaluateLongShooterState();
                 break;
         }
+    }
+
+    private ShooterState evaluateOffShooterState() {
+        return (gamepad1.right_trigger > 0.75) ? ShooterState.LONG :
+                (gamepad1.left_bumper) ? ShooterState.SHORT : ShooterState.OFF;
+    }
+
+    private ShooterState evaluateShortShooterState() {
+        return (gamepad1.back || !gamepad1.left_bumper) ? ShooterState.OFF :
+                (gamepad1.right_trigger > 0.75) ? ShooterState.LONG : ShooterState.SHORT;
+    }
+
+    private ShooterState evaluateLongShooterState() {
+        return (gamepad1.back || gamepad1.right_trigger <= 0.75) ? ShooterState.OFF :
+                (gamepad1.left_bumper) ? ShooterState.SHORT : ShooterState.LONG;
     }
 
     private void updateIntakeState(boolean aPressed, boolean full) {
         switch (intakeState) {
             case OFF:
-                if (gamepad1.x) {
-                    intakeState = IntakeState.REVERSE;
-                } else if (gamepad1.dpad_up) {
-                    intakeState = IntakeState.FEED;
-                } else if (aPressed) {
-                    intakeState = full ? IntakeState.FULL : IntakeState.ON;
-                }
+                intakeState = evaluateOffIntakeState(aPressed, full);
                 break;
             case ON:
-                if (gamepad1.back || gamepad1.b) {
-                    intakeState = IntakeState.OFF;
-                } else if (gamepad1.x) {
-                    intakeState = IntakeState.REVERSE;
-                } else if (gamepad1.dpad_up) {
-                    intakeState = IntakeState.FEED;
-                } else if (full) {
-                    intakeState = IntakeState.FULL;
-                }
+                intakeState = evaluateOnIntakeState(full);
                 break;
             case REVERSE:
-                if (gamepad1.back || gamepad1.b || !gamepad1.x) {
-                    intakeState = IntakeState.OFF;
-                }
+                intakeState = evaluateReverseIntakeState();
                 break;
             case FULL:
-                if (gamepad1.back || gamepad1.b) {
-                    intakeState = IntakeState.OFF;
-                } else if (gamepad1.x) {
-                    intakeState = IntakeState.REVERSE;
-                } else if (gamepad1.dpad_up) {
-                    intakeState = IntakeState.FEED;
-                }
+                intakeState = evaluateFullIntakeState();
                 break;
             case FEED:
-                if (gamepad1.back || gamepad1.b || !gamepad1.dpad_up) {
-                    intakeState = IntakeState.OFF;
-                }
+                intakeState = evaluateFeedIntakeState();
                 break;
         }
+    }
+
+    private IntakeState evaluateOffIntakeState(boolean aPressed, boolean full) {
+        return gamepad1.x ? IntakeState.REVERSE :
+                gamepad1.dpad_up ? IntakeState.FEED :
+                aPressed ? (full ? IntakeState.FULL : IntakeState.ON) : IntakeState.OFF;
+    }
+
+    private IntakeState evaluateOnIntakeState(boolean full) {
+        return (gamepad1.back || gamepad1.b) ? IntakeState.OFF :
+                gamepad1.x ? IntakeState.REVERSE :
+                gamepad1.dpad_up ? IntakeState.FEED :
+                full ? IntakeState.FULL : IntakeState.ON;
+    }
+
+    private IntakeState evaluateReverseIntakeState() {
+        return (gamepad1.back || gamepad1.b || !gamepad1.x) ? IntakeState.OFF : IntakeState.REVERSE;
+    }
+
+    private IntakeState evaluateFullIntakeState() {
+        return (gamepad1.back || gamepad1.b) ? IntakeState.OFF :
+                gamepad1.x ? IntakeState.REVERSE :
+                gamepad1.dpad_up ? IntakeState.FEED : IntakeState.FULL;
+    }
+
+    private IntakeState evaluateFeedIntakeState() {
+        return (gamepad1.back || gamepad1.b || !gamepad1.dpad_up) ? IntakeState.OFF : IntakeState.FEED;
     }
 
     private void updateArmState(boolean yPressed) {
         switch (armState) {
             case UP:
-                if (gamepad1.dpad_left) {
-                    armState = ArmState.BLOCK;
-                } else if (yPressed) {
-                    armState = ArmState.DOWN;
-                }
+                armState = gamepad1.dpad_left ? ArmState.BLOCK :
+                        yPressed ? ArmState.DOWN : ArmState.UP;
                 break;
             case DOWN:
-                if (gamepad1.back || gamepad1.dpad_down) {
-                    armState = ArmState.UP;
-                } else if (gamepad1.dpad_left) {
-                    armState = ArmState.BLOCK;
-                } else if (yPressed) {
-                    armState = ArmState.UP;
-                }
+                armState = (gamepad1.back || gamepad1.dpad_down) ? ArmState.UP :
+                        gamepad1.dpad_left ? ArmState.BLOCK :
+                        yPressed ? ArmState.UP : ArmState.DOWN;
                 break;
             case BLOCK:
-                if (gamepad1.back || gamepad1.dpad_down) {
-                    armState = ArmState.UP;
-                } else if (yPressed) {
-                    armState = ArmState.DOWN;
-                }
+                armState = (gamepad1.back || gamepad1.dpad_down) ? ArmState.UP :
+                        yPressed ? ArmState.DOWN : ArmState.BLOCK;
                 break;
         }
     }
-
 
     private void executeDriveStateMachine() {
         switch (driveState) {
@@ -188,20 +172,14 @@ public class BioBuzzTeleop extends OpMode {
 
     private void executeShooterStateMachine() {
         switch (shooterState) {
-            case OFF:
-                sh.setCurTargetVelocity("0", 0);
-                break;
-            case SHORT:
-                sh.setCurTargetVelocity("short", 0);
-                break;
-            case LONG:
-                sh.setCurTargetVelocity("long", 0);
-                break;
+            case OFF: sh.setCurTargetVelocity("0", 0); break;
+            case SHORT: sh.setCurTargetVelocity("short", 0); break;
+            case LONG: sh.setCurTargetVelocity("long", 0); break;
         }
         sh.PIDFShootingLoop();
     }
 
-    private void executeIntakeAndStopperStateMachine() {
+    private void executeIntakeAndStopperStateMachine(boolean full) {
         shotState = StopperState.BLOCKED;
         intakeStopperState = StopperState.BLOCKED;
 
@@ -219,15 +197,21 @@ public class BioBuzzTeleop extends OpMode {
                 intakeStopperState = StopperState.OPEN;
                 break;
             case FEED:
-                if (sh.shooterAtTarget()) {
-                    in.feedShooter();
-                    shotState = StopperState.OPEN;
-                } else {
-                    in.intakeOff();
-                }
+                // Replaced conditional block with ternary function evaluation
+                executeFeedActions();
                 break;
         }
 
+        executeStopperOutputs();
+    }
+
+    private void executeFeedActions() {
+        boolean ready = sh.shooterAtTarget();
+        in.setPower(ready ? in.FEED_POWER : 0.0);
+        shotState = ready ? StopperState.OPEN : StopperState.BLOCKED;
+    }
+
+    private void executeStopperOutputs() {
         switch (shotState) {
             case BLOCKED: shotStopper.block(); break;
             case OPEN: shotStopper.open(); break;
@@ -240,15 +224,9 @@ public class BioBuzzTeleop extends OpMode {
 
     private void executeArmStateMachine() {
         switch (armState) {
-            case UP:
-                arm.armUp();
-                break;
-            case DOWN:
-                arm.armDown();
-                break;
-            case BLOCK:
-                arm.armBlock();
-                break;
+            case UP: arm.armUp(); break;
+            case DOWN: arm.armDown(); break;
+            case BLOCK: arm.armBlock(); break;
         }
     }
 
