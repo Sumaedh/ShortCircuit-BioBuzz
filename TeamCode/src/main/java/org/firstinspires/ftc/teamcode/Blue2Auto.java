@@ -14,22 +14,22 @@ import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
-@Autonomous(name = "BIOBUZZ Red 2", group = "BIOBUZZ")
-public class BioBuzzRed2Auto extends LinearOpMode {
+@Autonomous(name = "BIOBUZZ Blue 2", group = "BIOBUZZ")
+public class Blue2Auto extends LinearOpMode {
     private Follower follower;
     private final BioBuzzIntake in = new BioBuzzIntake();
     private final BioBuzzShooter sh = new BioBuzzShooter();
     private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
     private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
     private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
-    private BioBuzzAutoActions actions;
+    private AutoActions actions;
 
     private static final boolean INITIAL_SHOT_FAR = false;
     private static final boolean MIDDLE_SHOT_FAR = false;
     private static final boolean FINAL_SHOT_FAR = false;
     private static final double AUTO_WATCHDOG_SECONDS = 30.0;
 
-    private final PoseFactory poseFactory = PoseFactory.degrees().mirrorX(70.75).mirrorY(70.75);
+    private final PoseFactory poseFactory = PoseFactory.degrees();
     private final Pose startPose = poseFactory.of(108.1051, 132.7, 270);
     private final Pose cornerApproach = poseFactory.of(127.5, 113.5, 90);
     private final Pose cornerControl1 = poseFactory.of(108.1051, 107.5, 0);
@@ -79,7 +79,7 @@ public class BioBuzzRed2Auto extends LinearOpMode {
             }
             follower.setPose(startPose);
             follower.update();
-            actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, arm, sensors);
+            actions = new AutoActions(follower, in, sh, shotStopper, arm, sensors);
             Command routine = autoRoutine();
             telemetry.update();
             waitForStart();
@@ -115,30 +115,30 @@ public class BioBuzzRed2Auto extends LinearOpMode {
     }
 
     public Path path1() {
-        return Paths.curve(startPose, cornerControl1, cornerControl2, cornerApproach).heading(BioBuzzAutoActions.linearHeading(startPose, cornerApproach));
+        return Paths.curve(startPose, cornerControl1, cornerControl2, cornerApproach).heading(AutoActions.linearHeading(startPose, cornerApproach));
     }
 
     public Path path2() {
-        return Paths.line(cornerApproach, cornerPickup).heading(BioBuzzAutoActions.linearHeading(cornerApproach, cornerPickup));
+        return Paths.line(cornerApproach, cornerPickup).heading(AutoActions.linearHeading(cornerApproach, cornerPickup));
     }
 
     public Path path3() {
-        return Paths.line(cornerPickup, cornerApproach).heading(BioBuzzAutoActions.linearHeading(cornerPickup, cornerApproach));
+        return Paths.line(cornerPickup, cornerApproach).heading(AutoActions.linearHeading(cornerPickup, cornerApproach));
     }
 
     public Path path4() {
-        return Paths.curve(cornerApproach, middleControl, middleShot).heading(BioBuzzAutoActions.linearHeading(cornerApproach, middleShot));
+        return Paths.curve(cornerApproach, middleControl, middleShot).heading(AutoActions.linearHeading(cornerApproach, middleShot));
     }
 
     public Path path5() {
-        return Paths.curve(middleShot, endControl, endApproach).heading(BioBuzzAutoActions.linearHeading(middleShot, endApproach));
+        return Paths.curve(middleShot, endControl, endApproach).heading(AutoActions.linearHeading(middleShot, endApproach));
     }
 
     public Path path6() {
-        return Paths.line(endApproach, endPickup).heading(BioBuzzAutoActions.linearHeading(endApproach, endPickup));
+        return Paths.line(endApproach, endPickup).heading(AutoActions.linearHeading(endApproach, endPickup));
     }
 
     public Path path7() {
-        return Paths.curve(endPickup, returnControl, finalShot).heading(BioBuzzAutoActions.linearHeading(endPickup, finalShot));
+        return Paths.curve(endPickup, returnControl, finalShot).heading(AutoActions.linearHeading(endPickup, finalShot));
     }
 }

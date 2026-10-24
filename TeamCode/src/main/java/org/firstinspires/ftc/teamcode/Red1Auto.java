@@ -15,14 +15,14 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
 @Autonomous(name = "BIOBUZZ Red 1", group = "BIOBUZZ")
-public class BioBuzzRed1Auto extends LinearOpMode {
+public class Red1Auto extends LinearOpMode {
     private Follower follower;
     private final BioBuzzIntake in = new BioBuzzIntake();
     private final BioBuzzShooter sh = new BioBuzzShooter();
     private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
     private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
     private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
-    private BioBuzzAutoActions actions;
+    private AutoActions actions;
 
     private static final boolean INITIAL_SHOT_FAR = false;
     private static final boolean MIDDLE_SHOT_FAR = false;
@@ -77,7 +77,7 @@ public class BioBuzzRed1Auto extends LinearOpMode {
             }
             follower.setPose(startPose);
             follower.update();
-            actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, arm, sensors);
+            actions = new AutoActions(follower, in, sh, shotStopper, arm, sensors);
             Command routine = autoRoutine();
             telemetry.update();
             waitForStart();
@@ -113,26 +113,26 @@ public class BioBuzzRed1Auto extends LinearOpMode {
     }
 
     public Path path1() {
-        return Paths.curve(startPose, sideControl, sideApproach).heading(BioBuzzAutoActions.linearHeading(startPose, sideApproach));
+        return Paths.curve(startPose, sideControl, sideApproach).heading(AutoActions.linearHeading(startPose, sideApproach));
     }
 
     public Path path2() {
-        return Paths.line(sideApproach, sidePickup).heading(BioBuzzAutoActions.linearHeading(sideApproach, sidePickup));
+        return Paths.line(sideApproach, sidePickup).heading(AutoActions.linearHeading(sideApproach, sidePickup));
     }
 
     public Path path3() {
-        return Paths.curve(sidePickup, middleControl, middleShot).heading(BioBuzzAutoActions.linearHeading(sidePickup, middleShot));
+        return Paths.curve(sidePickup, middleControl, middleShot).heading(AutoActions.linearHeading(sidePickup, middleShot));
     }
 
     public Path path4() {
-        return Paths.curve(middleShot, endControl, endApproach).heading(BioBuzzAutoActions.linearHeading(middleShot, endApproach));
+        return Paths.curve(middleShot, endControl, endApproach).heading(AutoActions.linearHeading(middleShot, endApproach));
     }
 
     public Path path5() {
-        return Paths.line(endApproach, endPickup).heading(BioBuzzAutoActions.linearHeading(endApproach, endPickup));
+        return Paths.line(endApproach, endPickup).heading(AutoActions.linearHeading(endApproach, endPickup));
     }
 
     public Path path6() {
-        return Paths.curve(endPickup, returnControl, finalShot).heading(BioBuzzAutoActions.linearHeading(endPickup, finalShot));
+        return Paths.curve(endPickup, returnControl, finalShot).heading(AutoActions.linearHeading(endPickup, finalShot));
     }
 }
