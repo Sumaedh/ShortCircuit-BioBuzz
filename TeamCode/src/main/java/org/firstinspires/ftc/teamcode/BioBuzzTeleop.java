@@ -50,13 +50,11 @@ public class BioBuzzTeleop extends OpMode {
         previousY = gamepad1.y;
         boolean full = sensors.isFull();
 
-        // 2. FSM State Transitions (incorporating distance sensor 'full' check into arm state)
         updateDriveState();
         updateShooterState();
         updateIntakeState(aPressed, full);
         updateArmState(yPressed, full);
 
-        // 3. State Execution Machines
         executeDriveStateMachine();
         executeShooterStateMachine();
         executeIntakeAndStopperStateMachine(full);
@@ -148,7 +146,6 @@ public class BioBuzzTeleop extends OpMode {
     private void updateArmState(boolean yPressed, boolean full) {
         switch (armState) {
             case UP:
-                // Automatically transition to BLOCK if distance sensors detect full storage, or use manual dpad_left / y
                 armState = full ? ArmState.BLOCK :
                         gamepad1.dpad_left ? ArmState.BLOCK :
                         yPressed ? ArmState.DOWN : ArmState.UP;
