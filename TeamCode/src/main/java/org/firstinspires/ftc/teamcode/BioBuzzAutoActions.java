@@ -32,7 +32,6 @@ public class BioBuzzAutoActions {
     public double SHOT_TIMEOUT_SECONDS = 5.0;
     public double PATH_TIMEOUT_SECONDS = 10.0;
 
-    // 7-Argument Constructor matching BioBuzzBlue1Auto exactly
     public BioBuzzAutoActions(Follower follower,
                               BioBuzzIntake in,
                               BioBuzzShooter shooter,
