@@ -20,7 +20,6 @@ public class BioBuzzRed2Auto extends LinearOpMode {
     private final BioBuzzIntake in = new BioBuzzIntake();
     private final BioBuzzShooter sh = new BioBuzzShooter();
     private final BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
-    private final BioBuzzIntakeStopper intakeStopper = new BioBuzzIntakeStopper();
     private final BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
     private final BioBuzzBallSensors sensors = new BioBuzzBallSensors();
     private BioBuzzAutoActions actions;
@@ -70,7 +69,6 @@ public class BioBuzzRed2Auto extends LinearOpMode {
             in.initIntake(hardwareMap);
             sh.initShooter(hardwareMap);
             shotStopper.initShotStopper(hardwareMap);
-            intakeStopper.initIntakeStopper(hardwareMap);
             arm.initFlowerArm(hardwareMap);
             sensors.initSensors(hardwareMap);
 
@@ -81,7 +79,7 @@ public class BioBuzzRed2Auto extends LinearOpMode {
             }
             follower.setPose(startPose);
             follower.update();
-            actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, intakeStopper, arm, sensors);
+            actions = new BioBuzzAutoActions(follower, in, sh, shotStopper, arm, sensors);
             Command routine = autoRoutine();
             telemetry.update();
             waitForStart();
@@ -111,7 +109,7 @@ public class BioBuzzRed2Auto extends LinearOpMode {
         } finally {
             Scheduler.reset();
             in.intakeOff(); sh.stopShooter();
-            shotStopper.block(); intakeStopper.block(); arm.armUp();
+            shotStopper.block(); arm.armUp();
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }

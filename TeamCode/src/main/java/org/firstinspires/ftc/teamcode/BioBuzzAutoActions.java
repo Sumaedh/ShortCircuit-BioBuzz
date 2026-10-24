@@ -18,7 +18,6 @@ public class BioBuzzAutoActions {
     private final BioBuzzIntake in;
     private final BioBuzzShooter shooter;
     private final BioBuzzShotStopper shotStopper;
-    private final BioBuzzIntakeStopper intakeStopper;
     private final BioBuzzFlowerArm arm;
     private final BioBuzzBallSensors sensors;
 
@@ -36,14 +35,12 @@ public class BioBuzzAutoActions {
                               BioBuzzIntake in,
                               BioBuzzShooter shooter,
                               BioBuzzShotStopper shotStopper,
-                              BioBuzzIntakeStopper intakeStopper,
                               BioBuzzFlowerArm arm,
                               BioBuzzBallSensors sensors) {
         this.follower = follower;
         this.in = in;
         this.shooter = shooter;
         this.shotStopper = shotStopper;
-        this.intakeStopper = intakeStopper;
         this.arm = arm;
         this.sensors = sensors;
     }
@@ -90,12 +87,10 @@ public class BioBuzzAutoActions {
         }
         switch (collectionState) {
             case COLLECTING:
-                intakeStopper.open();
                 in.intakeOn();
                 break;
             case FULL:
                 in.intakeOff();
-                intakeStopper.block();
                 if (collectingFlower) arm.armBlock();
                 break;
             case OFF: break;
@@ -198,7 +193,6 @@ public class BioBuzzAutoActions {
         in.intakeOff();
         shooter.stopShooter();
         shotStopper.block();
-        intakeStopper.block();
         arm.armUp();
     }
 }

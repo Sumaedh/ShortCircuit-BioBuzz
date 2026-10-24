@@ -9,7 +9,6 @@ public class BioBuzzTeleop extends OpMode {
     BioBuzzIntake in = new BioBuzzIntake();
     BioBuzzShooter sh = new BioBuzzShooter();
     BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
-    BioBuzzIntakeStopper intakeStopper = new BioBuzzIntakeStopper();
     BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
     BioBuzzBallSensors sensors = new BioBuzzBallSensors();
 
@@ -33,7 +32,6 @@ public class BioBuzzTeleop extends OpMode {
         in.initIntake(hardwareMap);
         sh.initShooter(hardwareMap);
         shotStopper.initShotStopper(hardwareMap);
-        intakeStopper.initIntakeStopper(hardwareMap);
         arm.initFlowerArm(hardwareMap);
         sensors.initSensors(hardwareMap);
         telemetry.addLine("Initialized - press START");
@@ -216,10 +214,6 @@ public class BioBuzzTeleop extends OpMode {
             case BLOCKED: shotStopper.block(); break;
             case OPEN: shotStopper.open(); break;
         }
-        switch (intakeStopperState) {
-            case BLOCKED: intakeStopper.block(); break;
-            case OPEN: intakeStopper.open(); break;
-        }
     }
 
     private void executeArmStateMachine() {
@@ -250,7 +244,6 @@ public class BioBuzzTeleop extends OpMode {
         in.intakeOff();
         sh.stopShooter();
         shotStopper.block();
-        intakeStopper.block();
         arm.armUp();
     }
 }
