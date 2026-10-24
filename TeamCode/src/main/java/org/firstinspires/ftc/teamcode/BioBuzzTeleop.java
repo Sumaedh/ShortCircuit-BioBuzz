@@ -10,7 +10,7 @@ public class BioBuzzTeleop extends OpMode {
     BioBuzzShooter sh = new BioBuzzShooter();
     BioBuzzShotStopper shotStopper = new BioBuzzShotStopper();
     BioBuzzFlowerArm arm = new BioBuzzFlowerArm();
-    BioBuzzBallSensors sensors = new BioBuzzBallSensors();
+    Sensors sensors = new Sensors();
 
     enum DriveState { NORMAL, SLOW }
     enum IntakeState { OFF, ON, REVERSE, FULL, FEED }
@@ -33,24 +33,30 @@ public class BioBuzzTeleop extends OpMode {
         sh.initShooter(hardwareMap);
         shotStopper.initShotStopper(hardwareMap);
         arm.initFlowerArm(hardwareMap);
+
+        sensors.STORAGE_MODE = Sensors.StorageMode.DISTANCE_CM;
         sensors.initSensors(hardwareMap);
+
         telemetry.addLine("Initialized - press START");
-        telemetry.update();
         telemetry.update();
     }
 
     @Override public void loop() {
+        sensors.update();
+
         boolean aPressed = gamepad1.a && !previousA;
         boolean yPressed = gamepad1.y && !previousY;
         previousA = gamepad1.a;
         previousY = gamepad1.y;
         boolean full = sensors.isFull();
 
+        // 2. FSM State Transitions (incorporating distance sensor 'full' check into arm state)
         updateDriveState();
         updateShooterState();
         updateIntakeState(aPressed, full);
-        updateArmState(yPressed);
+        updateArmState(yPressed, full);
 
+        // 3. State Execution Machines
         executeDriveStateMachine();
         executeShooterStateMachine();
         executeIntakeAndStopperStateMachine(full);
@@ -58,7 +64,6 @@ public class BioBuzzTeleop extends OpMode {
 
         sendTelemetry(full);
     }
-
 
     private void updateDriveState() {
         driveState = (gamepad1.left_trigger > 0.75) ? DriveState.SLOW : DriveState.NORMAL;
@@ -140,10 +145,12 @@ public class BioBuzzTeleop extends OpMode {
         return (gamepad1.back || gamepad1.b || !gamepad1.dpad_up) ? IntakeState.OFF : IntakeState.FEED;
     }
 
-    private void updateArmState(boolean yPressed) {
+    private void updateArmState(boolean yPressed, boolean full) {
         switch (armState) {
             case UP:
-                armState = gamepad1.dpad_left ? ArmState.BLOCK :
+                // Automatically transition to BLOCK if distance sensors detect full storage, or use manual dpad_left / y
+                armState = full ? ArmState.BLOCK :
+                        gamepad1.dpad_left ? ArmState.BLOCK :
                         yPressed ? ArmState.DOWN : ArmState.UP;
                 break;
             case DOWN:
@@ -231,11 +238,8 @@ public class BioBuzzTeleop extends OpMode {
         telemetry.addData("Shot Stopper", shotState);
         telemetry.addData("Intake Stopper", intakeStopperState);
         telemetry.addData("Flower Arm State", armState);
-        telemetry.addData("Storage Full", full);
-        telemetry.addData("Shooter Target Vel", sh.curTargetVelocity);
-        telemetry.addData("Shooter Left Vel", sh.getVelocity());
-        telemetry.addData("Shooter Right Vel", sh.getVelocity2());
-        telemetry.addData("Shooters Ready", sh.shooterAtTarget());
+        telemetry.addData("Storage Full (Distance)", full);
+        sensors.addTelemetry(telemetry);
         telemetry.update();
     }
 
@@ -245,5 +249,6 @@ public class BioBuzzTeleop extends OpMode {
         sh.stopShooter();
         shotStopper.block();
         arm.armUp();
+        sensors.close();
     }
 }

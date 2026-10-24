@@ -21,7 +21,7 @@ public class Sensors {
     public enum StorageState { NOT_STARTED, CLEAR, FULL, FAULT }
     public enum CameraState { NOT_STARTED, MISSING, WAITING, NO_TARGET, TARGET, STALE, PAUSED }
 
-    public StorageMode STORAGE_MODE = StorageMode.DIGITAL;
+    public StorageMode STORAGE_MODE = StorageMode.DISTANCE_CM;  
     public boolean FIRST_ACTIVE_HIGH = true;
     public boolean SECOND_ACTIVE_HIGH = true;
     public boolean FULL_REQUIRES_BOTH = false;
@@ -46,6 +46,12 @@ public class Sensors {
     private CameraState limelightState = CameraState.NOT_STARTED;
     private CameraState webcamState = CameraState.NOT_STARTED;
     private boolean pipelineAccepted;
+
+    public void initSensors(HardwareMap hwMap) {
+        initStorage(hwMap);
+        initLimelight(hwMap);
+        initLogitech(hwMap);
+    }
 
     public void initStorage(HardwareMap hwMap) {
         mappedMode = STORAGE_MODE;
@@ -165,11 +171,14 @@ public class Sensors {
             detections = new ArrayList<>(fresh);
             webcamFrameNanos = System.nanoTime();
         }
-        if (webcamFrameNanos == 0) webcamState = CameraState.WAITING;
-        else if ((System.nanoTime() - webcamFrameNanos) * 1e-6 > MAX_CAMERA_AGE_MS) {
+        if (webcamFrameNanos == 0) {
+            webcamState = CameraState.WAITING;
+        } else if (((System.nanoTime() - webcamFrameNanos) * 1e-6) > MAX_CAMERA_AGE_MS) {
             webcamState = CameraState.STALE;
             detections = Collections.emptyList();
-        } else webcamState = detections.isEmpty() ? CameraState.NO_TARGET : CameraState.TARGET;
+        } else {
+            webcamState = detections.isEmpty() ? CameraState.NO_TARGET : CameraState.TARGET;
+        }
     }
 
     public boolean isFull() { return storageState == StorageState.FULL; }

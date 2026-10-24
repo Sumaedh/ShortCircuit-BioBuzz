@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,34 +9,32 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Config
+@TeleOp(name = "BIOBUZZ TeleOp Testing Hub", group = "BIOBUZZ")
+public class TeleopTest extends OpMode {
 
-@TeleOp(name = "teleop(TESTING)")
-class TeleopTesting extends OpMode {
 
-    //TODO: SHOOTER
+    public static double pShooting = 0.0;
+    public static double iShooting = 0.0;
+    public static double dShooting = 0.0;
+    public static double fShooting = 0.0;
+    public static double curTargetVelocity = 0.0;
+
+    public static double intakeMotorPower = 0.0;
+    public static double armPos = 0.0;
+
+    public static double pitchPos = 0.0;
+
+
     DcMotorEx leftShootingMotor;
     DcMotorEx rightShootingMotor;
-
-    public static double fShooting = 0;
-    public static double pShooting = 0;
-    public static double dShooting = 0;
-    public static double curTargetVelocity = 0;
-
-    //TODO: INTAKE TRANSFER ARM
     DcMotorEx rightIntakeMotor;
     DcMotorEx leftIntakeMotor;
     Servo armMotor;
-    public static double intakeMotorPower = 0;
-    public static double armPos = 0;
-
-
-    // TODO: TURRET AND PITCH
     Servo pitchServo;
-    public static double pitchPos = 0;
 
     @Override
     public void init() {
-        // TODO: SHOOTER
         leftShootingMotor = hardwareMap.get(DcMotorEx.class, "leftShootingMotor");
         rightShootingMotor = hardwareMap.get(DcMotorEx.class, "rightShootingMotor");
 
@@ -48,21 +47,8 @@ class TeleopTesting extends OpMode {
         rightShootingMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightShootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        leftShootingMotor.setPIDFCoefficients(
-                DcMotorEx.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, dShooting, fShooting)
-        );
+        applyShooterPIDF();
 
-        rightShootingMotor.setPIDFCoefficients(
-                DcMotorEx.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, dShooting, fShooting)
-        );
-
-        curTargetVelocity = 0;
-        leftShootingMotor.setVelocity(0);
-        rightShootingMotor.setVelocity(0);
-
-        // TODO: INTAKE TRANSFER ARM
         rightIntakeMotor = hardwareMap.get(DcMotorEx.class, "rightIntakeMotor");
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -70,35 +56,56 @@ class TeleopTesting extends OpMode {
         armMotor = hardwareMap.get(Servo.class, "armMotor");
         armMotor.setDirection(Servo.Direction.REVERSE);
 
-        // TODO: TURRET AND PITCH
-
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
+
+        telemetry.addData("Status", "Testing Hub Initialized");
+        telemetry.update();
     }
 
     @Override
     public void loop() {
-
-        // TODO: SHOOTER
-        leftShootingMotor.setPIDFCoefficients(
-                DcMotorEx.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, dShooting, fShooting)
-        );
-
-        rightShootingMotor.setPIDFCoefficients(
-                DcMotorEx.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, dShooting, fShooting)
-        );
-
+        applyShooterPIDF();
         leftShootingMotor.setVelocity(curTargetVelocity);
         rightShootingMotor.setVelocity(curTargetVelocity);
 
-        //TODO: INTAKE TRANSFER ARM
         rightIntakeMotor.setPower(intakeMotorPower);
         leftIntakeMotor.setPower(intakeMotorPower);
 
         armMotor.setPosition(armPos);
-
-        //TODO: TURRET AND PITCH
         pitchServo.setPosition(pitchPos);
+
+        sendTestingTelemetry();
+    }
+
+    private void applyShooterPIDF() {
+        PIDFCoefficients pidf = new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting);
+        leftShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
+        rightShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
+    }
+
+    private void sendTestingTelemetry() {
+        telemetry.addData("--- SHOOTER ---", "");
+        telemetry.addData("Target Velocity", curTargetVelocity);
+        telemetry.addData("Left Velocity", leftShootingMotor.getVelocity());
+        telemetry.addData("Right Velocity", rightShootingMotor.getVelocity());
+        telemetry.addData("P / I / D / F", pShooting + " / " + iShooting + " / " + dShooting + " / " + fShooting);
+
+        telemetry.addData("--- INTAKE & ARM ---", "");
+        telemetry.addData("Intake Power", intakeMotorPower);
+        telemetry.addData("Arm Position", armPos);
+
+        telemetry.addData("--- PITCH SERVO ---", "");
+        telemetry.addData("Pitch Position", pitchPos);
+        telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        curTargetVelocity = 0;
+        intakeMotorPower = 0;
+        leftShootingMotor.setVelocity(0);
+        rightShootingMotor.setVelocity(0);
+        rightIntakeMotor.setPower(0);
+        leftIntakeMotor.setPower(0);
     }
 }
