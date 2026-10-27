@@ -12,9 +12,10 @@ public class Shooter {
     public double fShooting = 21.5;
     public double pShooting = 500;
 
+    public static double CUSTOM_TARGET_VELOCITY = 1470;
+
     public double curTargetVelocity = 0;
     public double LONG_VELOCITY = 1470;
-    public double SHORT_VELOCITY = 1200;
     public double SHOOTER_TOLERANCE = 50;
 
     public void initShooter(HardwareMap hwMap) {
@@ -44,8 +45,8 @@ public class Shooter {
     public void setCurTargetVelocity(String distance, int customLength) {
         if ("long".equals(distance)) {
             curTargetVelocity = LONG_VELOCITY;
-        } else if ("short".equals(distance)) {
-            curTargetVelocity = SHORT_VELOCITY;
+        } else if ("custom".equals(distance)) {
+            curTargetVelocity = customLength > 0 ? customLength : CUSTOM_TARGET_VELOCITY;
         } else if ("0".equals(distance) && customLength != 0) {
             curTargetVelocity = customLength;
         } else {
