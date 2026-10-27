@@ -95,16 +95,20 @@ public class Red1Auto extends LinearOpMode {
                 telemetry.addData("Storage full", sensors.isFull());
                 telemetry.update();
                 if (actions.failed() || routine.done()) break;
-                if (System.nanoTime() * 1e-9 - startTime > AUTO_WATCHDOG_SECONDS) {
-                    telemetry.addLine("Autonomous time limit reached"); telemetry.update();
+
+                if ((System.nanoTime() * 1e-9) - startTime > AUTO_WATCHDOG_SECONDS) {
+                    telemetry.addLine("Autonomous time limit reached");
+                    telemetry.update();
                     break;
                 }
                 idle();
             }
         } finally {
             Scheduler.reset();
-            in.intakeOff(); sh.stopShooter();
-            in.stopShoot(); in.armUp();
+            in.intakeOff();
+            sh.stopShooter();
+            in.stopShoot();
+            in.armUp();
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }

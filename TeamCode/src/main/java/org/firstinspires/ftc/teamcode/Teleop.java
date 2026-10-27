@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@TeleOp(name = "BIOBUZZ TeleOp", group = "BIOBUZZ")
 public class Teleop extends OpMode {
     private enum ShooterState { OFF, READY, FEEDING }
     private enum IntakeState { OFF, REVERSE, INTAKING, FULL }

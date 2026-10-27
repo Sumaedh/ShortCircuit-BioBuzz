@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "BIOBUZZ TeleOp Testing Hub", group = "BIOBUZZ")
 public class TeleopTest extends OpMode {
 
-
     public static double pShooting = 0.0;
     public static double iShooting = 0.0;
     public static double dShooting = 0.0;
@@ -22,9 +21,7 @@ public class TeleopTest extends OpMode {
 
     public static double intakeMotorPower = 0.0;
     public static double armPos = 0.0;
-
     public static double pitchPos = 0.0;
-
 
     DcMotorEx leftShootingMotor;
     DcMotorEx rightShootingMotor;
@@ -53,7 +50,7 @@ public class TeleopTest extends OpMode {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        armMotor = hardwareMap.get(Servo.class, "armMotor");
+        armMotor = hardwareMap.get(Servo.class, "arm"); // Fixed to match "arm" config string
         armMotor.setDirection(Servo.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
