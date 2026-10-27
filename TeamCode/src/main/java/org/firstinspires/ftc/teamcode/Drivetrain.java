@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Drivetrain {
     DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    private IMU imu;
+
     public double NORMAL_SCALE = 1.0;
     public double SLOW_SCALE = 1.0 / 3.0;
 
@@ -26,23 +31,44 @@ public class Drivetrain {
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
+
+        imu = hwMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        ));
+        imu.initialize(parameters);
     }
 
     public void driveMecanum(double leftY, double leftX, double rightX) {
-        drive(leftY, leftX, rightX, NORMAL_SCALE);
+        driveFieldCentric(leftY, leftX, rightX, NORMAL_SCALE);
     }
 
     public void driveMecanumSlower(double leftY, double leftX, double rightX) {
-        drive(leftY, leftX, rightX, SLOW_SCALE);
+        driveFieldCentric(leftY, leftX, rightX, SLOW_SCALE);
     }
 
-    private void drive(double y, double x, double turn, double scale) {
-        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(turn), 1.0);
+    private void driveFieldCentric(double y, double x, double turn, double scale) {
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-        frontLeft.setPower((-y + x + turn) / denominator * scale);
-        frontRight.setPower((-y - x - turn) / denominator * scale);
-        backLeft.setPower((-y - x + turn) / denominator * scale);
-        backRight.setPower((-y + x - turn) / denominator * scale);
+        double rotX = x * Math.cos(-botHeading) - (-y) * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + (-y) * Math.cos(-botHeading);
+
+        double adjustedY = -rotY;
+        double adjustedX = rotX;
+
+        double denominator = Math.max(Math.abs(adjustedY) + Math.abs(adjustedX) + Math.abs(turn), 1.0);
+
+        frontLeft.setPower((-adjustedY + adjustedX + turn) / denominator * scale);
+        frontRight.setPower((-adjustedY - adjustedX - turn) / denominator * scale);
+        backLeft.setPower((-adjustedY - adjustedX + turn) / denominator * scale);
+        backRight.setPower((-adjustedY + adjustedX - turn) / denominator * scale);
+    }
+
+    public void resetYaw() {
+        if (imu != null) {
+            imu.resetYaw();
+        }
     }
 
     public void stop() {
