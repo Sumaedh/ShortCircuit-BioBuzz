@@ -146,7 +146,6 @@ public class Teleop extends OpMode {
                 shooter.setCurTargetVelocity("custom", (int) Shooter.CUSTOM_TARGET_VELOCITY);
                 shooter.PIDFShootingLoop();
                 mechanisms.continueShoot();
-                mechanisms.feedShooter();
                 if (aPressed) {
                     shooterState = ShooterState.OFF;
                 } else if (gamepad2.right_trigger <= 0.25) {

@@ -55,10 +55,6 @@ public class IntakeTransferArm {
         setPower(-INTAKE_POWER);
     }
 
-    public void feedShooter() {
-        setPower(FEED_POWER);
-    }
-
     private void setPower(double power) {
         if (leftIntakeMotor != null) leftIntakeMotor.setPower(power);
         if (rightIntakeMotor != null) rightIntakeMotor.setPower(power);
