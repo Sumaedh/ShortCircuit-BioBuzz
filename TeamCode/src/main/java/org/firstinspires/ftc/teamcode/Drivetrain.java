@@ -65,6 +65,14 @@ public class Drivetrain {
         backRight.setPower((-adjustedY + adjustedX - turn) / denominator * scale);
     }
 
+    public void turnToTarget(double tx) {
+        double kp = 0.03;
+        double error = tx;
+        double turnPower = error * kp;
+        turnPower = Math.max(-0.5, Math.min(0.5, turnPower));
+        driveMecanum(0, 0, turnPower);
+    }
+
     public void resetYaw() {
         if (imu != null) {
             imu.resetYaw();
