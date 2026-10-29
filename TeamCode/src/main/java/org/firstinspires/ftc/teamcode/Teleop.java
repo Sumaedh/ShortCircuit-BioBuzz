@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,9 +13,6 @@ public class Teleop extends OpMode {
     private final IntakeTransferArm mechanisms = new IntakeTransferArm();
     private final Shooter shooter = new Shooter();
     private final Sensors sensors = new Sensors();
-
-    // Limelight declared directly in Teleop
-    private Limelight3A limelight;
 
     private IntakeState intakeState = IntakeState.OFF;
     private ArmState armState = ArmState.UP;
@@ -37,14 +32,6 @@ public class Teleop extends OpMode {
         mechanisms.initIntakeTransfer(hardwareMap);
         shooter.initShooter(hardwareMap);
         sensors.initSensors(hardwareMap);
-
-        // Initialize Limelight directly in TeleOp
-        limelight = hardwareMap.tryGet(Limelight3A.class, "limelight");
-        if (limelight != null) {
-            limelight.setPollRateHz(100);
-            limelight.pipelineSwitch(0);
-            limelight.start();
-        }
 
         telemetry.addLine("Ready");
         telemetry.update();
@@ -72,9 +59,6 @@ public class Teleop extends OpMode {
         previousX = gamepad2.x;
         previousY = gamepad2.y;
         previousB = gamepad2.b;
-
-        // Poll Limelight data in loop if needed
-        LLResult limelightResult = (limelight != null) ? limelight.getLatestResult() : null;
 
         switch (intakeState) {
             case OFF:
@@ -175,20 +159,11 @@ public class Teleop extends OpMode {
         telemetry.addData("Shooter", shooterState);
         telemetry.addData("Intake enabled", intakeEnabled);
         telemetry.addData("Storage full", sensors.isFull());
-
-        if (limelightResult != null && limelightResult.isValid()) {
-            telemetry.addData("Limelight TX", limelightResult.getTx());
-            telemetry.addData("Limelight TY", limelightResult.getTy());
-        }
-
         telemetry.update();
     }
 
     @Override
     public void stop() {
-        if (limelight != null) {
-            limelight.stop();
-        }
         sensors.close();
     }
 }
