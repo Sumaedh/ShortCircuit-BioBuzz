@@ -19,7 +19,6 @@ public class ServoZeroing extends LinearOpMode {
         Servo turretServo1 = hardwareMap.get(Servo.class, "turret_servo1");
         Servo turretServo2 = hardwareMap.get(Servo.class, "turret_servo2");
         Servo turretServo3 = hardwareMap.get(Servo.class, "turret_servo3");
-        Servo turretServo4 = hardwareMap.get(Servo.class, "turret_servo4");
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -32,8 +31,6 @@ public class ServoZeroing extends LinearOpMode {
             turretServo1.setPosition(TURRET_TARGET_POSITION);
             turretServo2.setPosition(TURRET_TARGET_POSITION);
             turretServo3.setPosition(TURRET_TARGET_POSITION);
-            turretServo4.setPosition(TURRET_TARGET_POSITION);
-
             telemetry.addData("Current Target Position", TURRET_TARGET_POSITION);
             telemetry.update();
         }
