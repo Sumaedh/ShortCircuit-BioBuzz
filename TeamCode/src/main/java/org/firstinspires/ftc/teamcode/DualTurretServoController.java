@@ -8,9 +8,9 @@ public class DualTurretServoController {
     private final Servo leftServo;
     private final Servo rightServo;
 
-    public DualTurretServoController(HardwareMap hwMap, String leftServoName, String rightServoName) {
-        leftServo = hwMap.get(Servo.class, leftServoName);
-        rightServo = hwMap.get(Servo.class, rightServoName);
+    public DualTurretServoController(HardwareMap hwMap, String leftName, String rightName) {
+        leftServo = hwMap.get(Servo.class, leftName);
+        rightServo = hwMap.get(Servo.class, rightName);
     }
 
     public static double clamp(double value, double min, double max) {
@@ -24,13 +24,7 @@ public class DualTurretServoController {
         return outMin + t * (outMax - outMin);
     }
 
-    public void setToZero() {
-        leftServo.setPosition(DualTurretServoConfig.ZERO_POSITION);
-        rightServo.setPosition(DualTurretServoConfig.ZERO_POSITION);
-    }
-
     public void setTargetDegrees(double degrees) {
-        // Map turret angle to left/right servo positions
         double leftPos = mapRange(
                 degrees,
                 DualTurretServoConfig.LEFT_LIMIT_DEGREES,
@@ -39,7 +33,6 @@ public class DualTurretServoController {
                 DualTurretServoConfig.RIGHT_LIMIT_POS
         );
 
-        // If the two servos are mirrored, the right servo is the inverse
         double rightPos = mapRange(
                 degrees,
                 DualTurretServoConfig.LEFT_LIMIT_DEGREES,
@@ -50,5 +43,10 @@ public class DualTurretServoController {
 
         leftServo.setPosition(clamp(leftPos, 0.0, 1.0));
         rightServo.setPosition(clamp(rightPos, 0.0, 1.0));
+    }
+
+    public void setToZero() {
+        leftServo.setPosition(DualTurretServoConfig.ZERO_POSITION);
+        rightServo.setPosition(DualTurretServoConfig.ZERO_POSITION);
     }
 }
