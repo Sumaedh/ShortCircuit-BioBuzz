@@ -170,7 +170,6 @@ public class AutoActions {
 
                     switch (state[0]) {
                         case FEEDING:
-                            intake.feedShooter();
                             intake.continueShoot();
                             break;
                         case SPIN_UP:
