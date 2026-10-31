@@ -15,13 +15,6 @@ public class TurretTest {
     private final double minAngleDeg = -135.0;
     private final double maxAngleDeg = 135.0;
 
-    private final double switchbackThresholdDeg = 5.0;
-
-    private final double kP = 0.02;
-    private final double kI = 0.001;
-    private final double kD = 0.0008;
-    private final double kF = 0.02;
-
     private double targetDegrees = 0.0;
     private double previousError = 0.0;
     private double integral = 0.0;
@@ -102,19 +95,18 @@ public class TurretTest {
 
     public double clampDegrees(double value, double min, double max) {
         if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        return Math.min(value, max);
     }
 
     public double clampPower(double value) {
         if (value > 1.0) return 1.0;
-        if (value < -1.0) return -1.0;
-        return value;
+        return Math.max(value, -1.0);
     }
 
     public void handleSwitchback() {
         double currentDegrees = getCurrentTurretDegrees();
 
+        double switchbackThresholdDeg = 5.0;
         if (currentDegrees < minAngleDeg - switchbackThresholdDeg) {
             targetDegrees = minAngleDeg;
         } else if (currentDegrees > maxAngleDeg + switchbackThresholdDeg) {
@@ -144,7 +136,11 @@ public class TurretTest {
         integral += error * dt;
         double derivative = (error - previousError) / dt;
 
+        double kF = 0.02;
         double feedforward = kF * Math.signum(error);
+        double kP = 0.02;
+        double kI = 0.001;
+        double kD = 0.0008;
         double output = kP * error + kI * integral + kD * derivative + feedforward;
 
         if (Math.abs(error) < 1.0) {
