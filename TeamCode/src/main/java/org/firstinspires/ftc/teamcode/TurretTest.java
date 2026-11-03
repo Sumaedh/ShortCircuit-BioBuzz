@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class TurretTest {
 
+
     private final DcMotorEx turretMotor;
 
+    GoBildaPinpointDriver pinpointDriver;
 
     private final double ticksPerRevolution = 537.7;
 
@@ -29,9 +32,12 @@ public class TurretTest {
         turretMotor.setMode(com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    /*
     public void setZeroOffsetDegrees(double offsetDegrees) {
         this.zeroOffsetDegrees = offsetDegrees;
     }
+
+     */
 
     public static double normalizeRadians(double angle) {
         while (angle > Math.PI) {
@@ -43,6 +49,7 @@ public class TurretTest {
         return angle;
     }
 
+    /*
     public static double normalizeDegrees(double angle) {
         while (angle > 180.0) {
             angle -= 360.0;
@@ -53,6 +60,9 @@ public class TurretTest {
         return angle;
     }
 
+     */
+
+
     public double getCurrentTicks() {
         return turretMotor.getCurrentPosition();
     }
@@ -60,14 +70,18 @@ public class TurretTest {
     public double ticksToDegrees(double ticks) {
         double motorRotations = ticks / ticksPerRevolution;
         double turretRotations = motorRotations / gearRatio;
+
+
         return (turretRotations * 360.0) + zeroOffsetDegrees;
     }
 
+    /*
     public double degreesToTicks(double degrees) {
         double turretRotations = (degrees - zeroOffsetDegrees) / 360.0;
         double motorRotations = turretRotations * gearRatio;
         return motorRotations * ticksPerRevolution;
     }
+     */
 
     public void setTargetDegrees(double degrees) {
         targetDegrees = clampDegrees(degrees, minAngleDeg, maxAngleDeg);
@@ -86,11 +100,11 @@ public class TurretTest {
         double fieldAngle = Math.atan2(yOffset, xOffset);
         double relativeTargetAngle = normalizeRadians(fieldAngle - robotHeadingRadians);
 
-        double desiredTurretDegrees = Math.toDegrees(relativeTargetAngle);
+        double desiredTurretAngle = Math.toRadians(relativeTargetAngle);
 
-        desiredTurretDegrees = clampDegrees(desiredTurretDegrees, minAngleDeg, maxAngleDeg);
+        desiredTurretAngle = clampDegrees(desiredTurretAngle, minAngleDeg, maxAngleDeg);
 
-        setTargetDegrees(desiredTurretDegrees);
+        setTargetDegrees(desiredTurretAngle);
     }
 
     public double clampDegrees(double value, double min, double max) {
@@ -103,6 +117,7 @@ public class TurretTest {
         return Math.max(value, -1.0);
     }
 
+    /*
     public void handleSwitchback() {
         double currentDegrees = getCurrentTurretDegrees();
 
@@ -114,12 +129,14 @@ public class TurretTest {
         }
     }
 
+     */
+
     public void update() {
         double currentDegrees = getCurrentTurretDegrees();
 
-        handleSwitchback();
+        //handleSwitchback();
 
-        double error = normalizeDegrees(targetDegrees - currentDegrees);
+        double error = normalizeRadians(targetDegrees - currentDegrees);
 
         double now = System.currentTimeMillis() / 1000.0;
         double dt = 0.02;
@@ -160,7 +177,7 @@ public class TurretTest {
 
     public boolean isOnTarget(double toleranceDegrees) {
         double currentDegrees = getCurrentTurretDegrees();
-        double error = normalizeDegrees(targetDegrees - currentDegrees);
+        double error = normalizeRadians(targetDegrees - currentDegrees);
         return Math.abs(error) <= toleranceDegrees;
     }
 
