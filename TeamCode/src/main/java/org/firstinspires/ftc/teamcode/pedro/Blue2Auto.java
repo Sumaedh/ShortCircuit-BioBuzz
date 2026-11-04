@@ -11,12 +11,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.AutoActions;
+import org.firstinspires.ftc.teamcode.BulkCaching;
 import org.firstinspires.ftc.teamcode.IntakeTransferArm;
 import org.firstinspires.ftc.teamcode.Sensors;
 import org.firstinspires.ftc.teamcode.Shooter;
 
-import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
 @Autonomous(name = "BIOBUZZ Blue 2", group = "BIOBUZZ")
@@ -45,6 +44,10 @@ public class Blue2Auto extends LinearOpMode {
     private final Pose endPickup = poseFactory.of(94.3797, 11, 270);
     private final Pose finalShot = poseFactory.of(84.1051, 132.7, 270);
     private final Pose returnControl = poseFactory.of(141.723, 54.7839, 0);
+    // Centre of the blue LOADING ZONE (tile F2, x 130.5-141.5, y 23.5-46.5). Overlaps it by ~9.5 in
+    // for an 18 in robot, and stays inside the perimeter at x 141.5.
+    private final Pose parkPose = poseFactory.of(131, 35.25, 0);
+    private final Pose parkControl = poseFactory.of(128, 85, 0);
 
     public Command autoRoutine() {
         return sequential(
@@ -62,45 +65,47 @@ public class Blue2Auto extends LinearOpMode {
                 actions.finishPickup(),
                 actions.drive(path7(), "Return"),
                 actions.shoot(FINAL_SHOT_FAR, "Final shot"),
-                instant(actions::stopMechanisms)
+                actions.park()
         );
     }
 
     @Override public void runOpMode() {
         Scheduler.reset();
         try {
+            BulkCaching.enableAuto(hardwareMap);
             in.initIntakeTransfer(hardwareMap);
             sh.initShooter(hardwareMap);
             sensors.initSensors(hardwareMap);
 
             follower = Constants.create(hardwareMap);
             if (follower == null) {
+                telemetry.addLine(Constants.NOT_READY);
                 telemetry.update();
+                while (!isStopRequested()) sleep(50);
                 return;
             }
             follower.setPose(startPose);
             follower.update();
-            actions = new AutoActions(follower, in, sh, sensors);
+            actions = new AutoActions(follower, in, sh, sensors, parkPose, parkControl);
             Command routine = autoRoutine();
             telemetry.update();
             waitForStart();
             if (isStopRequested()) return;
 
             double startTime = System.nanoTime() * 1e-9;
-            schedule(routine);
+            actions.start(routine);
             while (opModeIsActive()) {
                 follower.update();
                 sh.PIDFShootingLoop();
-                actions.updateCollection();
-                Scheduler.execute();
+                boolean finished = actions.update();
                 telemetry.addData("Action", actions.status());
                 telemetry.addData("X / Y", follower.pose().x() + " / " + follower.pose().y());
                 telemetry.addData("Heading degrees", Math.toDegrees(follower.pose().heading()));
                 telemetry.addData("Shooter target", sh.curTargetVelocity);
                 telemetry.addData("Shooter left / right", sh.getVelocity() + " / " + sh.getVelocity2());
-                telemetry.addData("Storage full", sensors.isFull());
+                telemetry.addData("Storage full", sensors.lastFull());
                 telemetry.update();
-                if (actions.failed() || routine.done()) break;
+                if (finished) break;
 
                 if ((System.nanoTime() * 1e-9) - startTime > AUTO_WATCHDOG_SECONDS) {
                     telemetry.addLine("Autonomous time limit reached");

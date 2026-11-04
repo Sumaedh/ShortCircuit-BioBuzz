@@ -15,8 +15,11 @@ public class Shooter {
     public static double CUSTOM_TARGET_VELOCITY = 1470;
 
     public double curTargetVelocity = 0;
+    public double SHORT_VELOCITY = 1200;
     public double LONG_VELOCITY = 1470;
     public double SHOOTER_TOLERANCE = 50;
+
+    private double commandedVelocity = 0;
 
     public void initShooter(HardwareMap hwMap) {
         leftShootingMotor = hwMap.get(DcMotorEx.class, "leftShootingMotor");
@@ -35,16 +38,16 @@ public class Shooter {
                     DcMotor.RunMode.RUN_USING_ENCODER,
                     new PIDFCoefficients(pShooting, 0, 0, fShooting)
             );
-
-            motor.setVelocity(0);
         }
 
-        curTargetVelocity = 0;
+        stopShooter();
     }
 
     public void setCurTargetVelocity(String distance, int customLength) {
         if ("long".equals(distance)) {
             curTargetVelocity = LONG_VELOCITY;
+        } else if ("short".equals(distance)) {
+            curTargetVelocity = SHORT_VELOCITY;
         } else if ("custom".equals(distance)) {
             curTargetVelocity = customLength > 0 ? customLength : CUSTOM_TARGET_VELOCITY;
         } else if ("0".equals(distance) && customLength != 0) {
@@ -69,22 +72,30 @@ public class Shooter {
     }
 
     public void PIDFShootingLoop() {
-        for (DcMotorEx motor : new DcMotorEx[]{leftShootingMotor, rightShootingMotor}) {
-            motor.setPIDFCoefficients(
-                    DcMotor.RunMode.RUN_USING_ENCODER,
-                    new PIDFCoefficients(pShooting, 0, 0, fShooting)
-            );
-            motor.setVelocity(curTargetVelocity);
+        if (curTargetVelocity <= 0) {
+            if (commandedVelocity != 0) {
+                coast();
+            }
+            return;
+        }
+        if (curTargetVelocity != commandedVelocity) {
+            leftShootingMotor.setVelocity(curTargetVelocity);
+            rightShootingMotor.setVelocity(curTargetVelocity);
+            commandedVelocity = curTargetVelocity;
         }
     }
 
     public void stopShooter() {
         curTargetVelocity = 0;
+        coast();
+    }
+
+    private void coast() {
         for (DcMotorEx motor : new DcMotorEx[]{leftShootingMotor, rightShootingMotor}) {
             if (motor != null) {
-                motor.setVelocity(0);
-                motor.setPower(0);
+                motor.setMotorDisable();
             }
         }
+        commandedVelocity = 0;
     }
 }

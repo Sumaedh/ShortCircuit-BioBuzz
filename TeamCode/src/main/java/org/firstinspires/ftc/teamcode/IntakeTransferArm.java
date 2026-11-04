@@ -14,7 +14,9 @@ public class IntakeTransferArm {
     public double FEED_POWER = 1.0;
 
     public double ARM_UP = 0.0;
-    public double ARM_INTAKE_FLOWER = 0.0;
+    // ARM_INTAKE_FLOWER is a PLACEHOLDER. It must differ from ARM_UP and ARM_BLOCK, otherwise the
+    // flower and block buttons do the same thing. Measure the real value with TeleopTest.
+    public double ARM_INTAKE_FLOWER = 0.25;
     public double ARM_BLOCK = 0.5;
 
     public double SHOT_BLOCKED = 0.5;
@@ -49,6 +51,10 @@ public class IntakeTransferArm {
 
     public void intakeOff() {
         setPower(0);
+    }
+
+    public void feedShooter() {
+        setPower(FEED_POWER);
     }
 
     public void intakeReverse() {

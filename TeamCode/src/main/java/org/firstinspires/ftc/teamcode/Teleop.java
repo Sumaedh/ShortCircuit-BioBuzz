@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "BIO-BUZZ TeleOp", group = "BIO-BUZZ")
 public class Teleop extends OpMode {
     private static final double TRIGGER_THRESHOLD     = 0.25;
-    private static final double SPIN_UP_SECONDS       = 1.0;
+    private static final double SPIN_UP_TIMEOUT_SECONDS = 3.0;
     private static final double FULL_DEBOUNCE_SECONDS = 0.15;
     private static final boolean INVERT_FORWARD       = false;
 
@@ -29,11 +29,13 @@ public class Teleop extends OpMode {
     private final Button armFlowerBtn    = new Button();
     private final Button armBlockBtn     = new Button();
     private final Button armUpBtn        = new Button();
+    private final Button resetYawBtn     = new Button();
 
     private boolean intakeEnabled = false;
     private boolean reverseHeld   = false;
     private boolean feedHeld      = false;
     private boolean storageFull   = false;
+    private boolean speedCheckBypassed = false;
 
     private final ElapsedTime shooterStateTimer = new ElapsedTime();
     private final ElapsedTime fullDebounceTimer = new ElapsedTime();
@@ -41,6 +43,7 @@ public class Teleop extends OpMode {
 
     @Override
     public void init() {
+        BulkCaching.enableAuto(hardwareMap);
         drivetrain.initDrivetrain(hardwareMap);
         mechanisms.initIntakeTransfer(hardwareMap);
         shooter.initShooter(hardwareMap);
@@ -78,6 +81,11 @@ public class Teleop extends OpMode {
         armFlowerBtn.update(gamepad2.x);
         armBlockBtn.update(gamepad2.y);
         armUpBtn.update(gamepad2.b);
+        resetYawBtn.update(gamepad1.back);
+
+        if (resetYawBtn.pressed()) {
+            drivetrain.resetYaw();
+        }
 
         if (toggleIntakeBtn.pressed()) {
             intakeEnabled = !intakeEnabled;
@@ -89,6 +97,9 @@ public class Teleop extends OpMode {
     }
 
     private void updateStorageFull() {
+        if (!intakeEnabled) {
+            return;
+        }
         boolean rawFull = sensors.isFull();
         if (rawFull != lastRawFull) {
             lastRawFull = rawFull;
@@ -142,12 +153,20 @@ public class Teleop extends OpMode {
     private ShooterState nextShooterState(ShooterState current) {
         switch (current) {
             case OFF:
+                speedCheckBypassed = false;
                 return shooterBtn.pressed() ? ShooterState.SPINNING_UP : ShooterState.OFF;
             case SPINNING_UP:
                 if (shooterBtn.pressed()) return ShooterState.OFF;
-                return shooterStateTimer.seconds() >= SPIN_UP_SECONDS
-                        ? ShooterState.READY : ShooterState.SPINNING_UP;
+                if (shooter.shooterAtTarget()) return ShooterState.READY;
+                if (shooterStateTimer.seconds() >= SPIN_UP_TIMEOUT_SECONDS) {
+                    speedCheckBypassed = true;
+                    return ShooterState.READY;
+                }
+                return ShooterState.SPINNING_UP;
             case READY:
+                if (shooterBtn.pressed()) return ShooterState.OFF;
+                return feedHeld && (speedCheckBypassed || shooter.shooterAtTarget())
+                        ? ShooterState.FEEDING : ShooterState.READY;
             case FEEDING:
                 if (shooterBtn.pressed()) return ShooterState.OFF;
                 return feedHeld ? ShooterState.FEEDING : ShooterState.READY;
@@ -169,6 +188,10 @@ public class Teleop extends OpMode {
     }
 
     private void applyIntake() {
+        if (shooterState == ShooterState.FEEDING && !reverseHeld) {
+            mechanisms.feedShooter();
+            return;
+        }
         switch (intakeState) {
             case INTAKING: mechanisms.intakeOn();      break;
             case REVERSE:  mechanisms.intakeReverse(); break;
@@ -218,6 +241,11 @@ public class Teleop extends OpMode {
         telemetry.addData("Arm", armState);
         telemetry.addData("Shooter", shooterState);
         telemetry.addData("Shooter state time", "%.2f s", shooterStateTimer.seconds());
+        telemetry.addData("Shooter target", shooter.curTargetVelocity);
+        telemetry.addData("Shooter left / right", "%.0f / %.0f", shooter.getVelocity(), shooter.getVelocity2());
+        if (speedCheckBypassed) {
+            telemetry.addLine("WARNING: flywheel never reached speed, check battery and encoders");
+        }
         telemetry.update();
     }
 

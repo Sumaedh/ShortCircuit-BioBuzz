@@ -50,7 +50,7 @@ public class TeleopTest extends OpMode {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        armMotor = hardwareMap.get(Servo.class, "arm"); // Fixed to match "arm" config string
+        armMotor = hardwareMap.get(Servo.class, "arm");
         armMotor.setDirection(Servo.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");

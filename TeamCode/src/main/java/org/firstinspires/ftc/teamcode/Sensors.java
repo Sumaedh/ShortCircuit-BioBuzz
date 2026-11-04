@@ -20,7 +20,7 @@ public class Sensors {
     DistanceSensor firstDistance, secondDistance;
 
     private StorageMode mappedMode;
-    private boolean firstDetected, secondDetected;
+    private boolean firstDetected, secondDetected, lastFull;
 
     public void initSensors(HardwareMap hwMap) {
         mappedMode = STORAGE_MODE;
@@ -50,6 +50,7 @@ public class Sensors {
 
                 if (Double.isNaN(firstCm) || Double.isInfinite(firstCm) || firstCm < 0 ||
                         Double.isNaN(secondCm) || Double.isInfinite(secondCm) || secondCm < 0) {
+                    lastFull = false;
                     return false;
                 }
 
@@ -58,9 +59,14 @@ public class Sensors {
                 break;
         }
 
-        return FULL_REQUIRES_BOTH
+        lastFull = FULL_REQUIRES_BOTH
                 ? firstDetected && secondDetected
                 : firstDetected || secondDetected;
+        return lastFull;
+    }
+
+    public boolean lastFull() {
+        return lastFull;
     }
 
     public void close() {
