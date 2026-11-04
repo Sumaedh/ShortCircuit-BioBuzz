@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
-@TeleOp(name = "BIOBUZZ TeleOp Testing Hub", group = "BIOBUZZ")
+@TeleOp(name = "BIO-BUZZ TeleOp Testing Hub", group = "BIO-BUZZ")
 public class TeleopTest extends OpMode {
 
     public static double pShooting = 0.0;

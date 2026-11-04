@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "Dual Turret Dashboard Tune", group = "BIOBUZZ")
+@TeleOp(name = "Dual Turret Dashboard Tune", group = "BIO-BUZZ")
 public class DualTurretDashboardTune extends LinearOpMode {
 
     private DualTurretServoController turret;

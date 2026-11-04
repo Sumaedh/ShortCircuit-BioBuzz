@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @Config
-@TeleOp(name = "Limelight Tuning Test", group = "BIOBUZZ")
+@TeleOp(name = "Limelight Tuning Test", group = "BIO-BUZZ")
 public class LimelightTuningTest extends OpMode {
     private Limelight3A limelight;
     private int currentPipeline = 0;
