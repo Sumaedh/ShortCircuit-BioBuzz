@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Shooter;
 
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
+
 @Autonomous(name = "BIOBUZZ Blue 1", group = "BIOBUZZ")
 public class Blue1Auto extends LinearOpMode {
     private Follower follower;
@@ -31,37 +32,53 @@ public class Blue1Auto extends LinearOpMode {
     private static final boolean FINAL_SHOT_FAR = false;
     private static final double AUTO_WATCHDOG_SECONDS = 30.0;
 
+    private static final double CELL_X = 84.1;
+    private static final double CELL_Y = 81.7;
+
+    private static double aimAtCell(double x, double y) {
+        double deg = Math.toDegrees(Math.atan2(CELL_Y - y, CELL_X - x));
+        return deg < 0 ? deg + 360 : deg;
+    }
+
     private final PoseFactory poseFactory = PoseFactory.degrees();
-    private final Pose startPose = poseFactory.of(84.1051, 132.7, 270);
-    private final Pose sideApproach = poseFactory.of(125.5152, 94.1156, 0);
-    private final Pose sideControl = poseFactory.of(103.8315, 114.1313, 0);
-    private final Pose sidePickup = poseFactory.of(130.7, 94, 0);
-    private final Pose middleShot = poseFactory.of(81.4519, 23.2505, 90);
-    private final Pose middleControl = poseFactory.of(102.1051, 25.8104, 0);
-    private final Pose endApproach = poseFactory.of(94.3797, 14.0527, 270);
-    private final Pose endControl = poseFactory.of(97.7156, 27.3965, 0);
-    private final Pose endPickup = poseFactory.of(94.3797, 11, 270);
-    private final Pose finalShot = poseFactory.of(84.1051, 132.7, 270);
-    private final Pose returnControl = poseFactory.of(141.723, 54.7839, 0);
-    // Centre of the blue LOADING ZONE (tile F2, x 130.5-141.5, y 23.5-46.5). Overlaps it by ~9.5 in
-    // for an 18 in robot, and stays inside the perimeter at x 141.5.
+
+    private final Pose startPose = poseFactory.of(84.1, 132.7, aimAtCell(84.1, 132.7));
+
+    private final Pose sideControl1 = poseFactory.of(100.0, 126.0, 0);
+    private final Pose sideControl2 = poseFactory.of(108.0, 94.0, 0);
+    private final Pose sideApproach = poseFactory.of(116.0, 94.0, 0);
+    private final Pose sidePickup = poseFactory.of(130.7, 94.0, 0);
+
+    private final Pose middleControl1 = poseFactory.of(121.0, 94.0, 0);
+    private final Pose middleControl2 = poseFactory.of(121.0, 28.0, 0);
+    private final Pose middleShot = poseFactory.of(81.45, 23.25, aimAtCell(81.45, 23.25));
+
+    private final Pose endControl1 = poseFactory.of(81.45, 36.0, 0);
+    private final Pose endControl2 = poseFactory.of(94.38, 38.0, 0);
+    private final Pose endApproach = poseFactory.of(94.38, 26.0, 270);
+    private final Pose endPickup = poseFactory.of(94.38, 11.0, 270);
+
+    private final Pose returnControl1 = poseFactory.of(114.0, 22.0, 0);
+    private final Pose returnControl2 = poseFactory.of(130.0, 118.0, 0);
+    private final Pose finalShot = startPose;
+
     private final Pose parkPose = poseFactory.of(131, 35.25, 0);
     private final Pose parkControl = poseFactory.of(128, 85, 0);
 
     public Command autoRoutine() {
         return sequential(
                 actions.shoot(INITIAL_SHOT_FAR, "First shot"),
-                actions.drive(path1(), "Approach"),
+                actions.drive(toSideFlower(), "To side flower"),
                 actions.preparePickup(true),
-                actions.drive(path2(), "First pickup"),
+                actions.drive(intakeSideFlower(), "Straight side flower intake"),
                 actions.finishPickup(),
-                actions.drive(path3(), "Return"),
+                actions.drive(toMiddleShot(), "To middle shot"),
                 actions.shoot(MIDDLE_SHOT_FAR, "Middle shot"),
-                actions.drive(path4(), "Approach"),
+                actions.drive(toEndFlower(), "To end flower"),
                 actions.preparePickup(true),
-                actions.drive(path5(), "Straight end-flower pickup"),
+                actions.drive(intakeEndFlower(), "Straight end flower intake"),
                 actions.finishPickup(),
-                actions.drive(path6(), "Return"),
+                actions.drive(toFinalShot(), "To final shot"),
                 actions.shoot(FINAL_SHOT_FAR, "Final shot"),
                 actions.park()
         );
@@ -123,27 +140,33 @@ public class Blue1Auto extends LinearOpMode {
         }
     }
 
-    public Path path1() {
-        return Paths.curve(startPose, sideControl, sideApproach).heading(AutoActions.linearHeading(startPose, sideApproach));
+    public Path toSideFlower() {
+        return Paths.curve(startPose, sideControl1, sideControl2, sideApproach)
+                .heading(AutoActions.linearHeading(startPose, sideApproach));
     }
 
-    public Path path2() {
-        return Paths.line(sideApproach, sidePickup).heading(AutoActions.linearHeading(sideApproach, sidePickup));
+    public Path intakeSideFlower() {
+        return Paths.line(sideApproach, sidePickup)
+                .heading(AutoActions.linearHeading(sideApproach, sidePickup));
     }
 
-    public Path path3() {
-        return Paths.curve(sidePickup, middleControl, middleShot).heading(AutoActions.linearHeading(sidePickup, middleShot));
+    public Path toMiddleShot() {
+        return Paths.curve(sidePickup, middleControl1, middleControl2, middleShot)
+                .heading(AutoActions.linearHeading(sidePickup, middleShot));
     }
 
-    public Path path4() {
-        return Paths.curve(middleShot, endControl, endApproach).heading(AutoActions.linearHeading(middleShot, endApproach));
+    public Path toEndFlower() {
+        return Paths.curve(middleShot, endControl1, endControl2, endApproach)
+                .heading(AutoActions.linearHeading(middleShot, endApproach));
     }
 
-    public Path path5() {
-        return Paths.line(endApproach, endPickup).heading(AutoActions.linearHeading(endApproach, endPickup));
+    public Path intakeEndFlower() {
+        return Paths.line(endApproach, endPickup)
+                .heading(AutoActions.linearHeading(endApproach, endPickup));
     }
 
-    public Path path6() {
-        return Paths.curve(endPickup, returnControl, finalShot).heading(AutoActions.linearHeading(endPickup, finalShot));
+    public Path toFinalShot() {
+        return Paths.curve(endPickup, returnControl1, returnControl2, finalShot)
+                .heading(AutoActions.linearHeading(endPickup, finalShot));
     }
 }
