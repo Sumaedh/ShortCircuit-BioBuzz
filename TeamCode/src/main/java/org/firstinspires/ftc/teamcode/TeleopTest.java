@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Config
+
 @TeleOp(name = "BIO-BUZZ TeleOp Testing Hub", group = "BIO-BUZZ")
 public class TeleopTest extends OpMode {
 
@@ -27,7 +27,7 @@ public class TeleopTest extends OpMode {
     DcMotorEx rightShootingMotor;
     DcMotorEx rightIntakeMotor;
     DcMotorEx leftIntakeMotor;
-    Servo armMotor;
+    Servo arm;
     Servo pitchServo;
 
     @Override
@@ -50,8 +50,8 @@ public class TeleopTest extends OpMode {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        armMotor = hardwareMap.get(Servo.class, "arm");
-        armMotor.setDirection(Servo.Direction.REVERSE);
+        arm = hardwareMap.get(Servo.class, "arm");
+        arm.setDirection(Servo.Direction.REVERSE);
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
 
@@ -68,7 +68,7 @@ public class TeleopTest extends OpMode {
         rightIntakeMotor.setPower(intakeMotorPower);
         leftIntakeMotor.setPower(intakeMotorPower);
 
-        armMotor.setPosition(armPos);
+        arm.setPosition(armPos);
         pitchServo.setPosition(pitchPos);
 
         sendTestingTelemetry();
