@@ -26,5 +26,4 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation "com.bylazar:fullpanels:<VERSION>"
 }
