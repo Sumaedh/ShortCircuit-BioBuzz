@@ -48,8 +48,16 @@ public class Drivetrain {
         driveFieldCentric(leftY, leftX, rightX, SLOW_SCALE);
     }
 
+    public void driveRobotCentric(double leftY, double leftX, double rightX) {
+        drive(leftY, leftX, rightX, 0.0, NORMAL_SCALE);
+    }
+
     private void driveFieldCentric(double y, double x, double turn, double scale) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        drive(y, x, turn, botHeading, scale);
+    }
+
+    private void drive(double y, double x, double turn, double botHeading, double scale) {
 
         double rotX = x * Math.cos(-botHeading) - (-y) * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + (-y) * Math.cos(-botHeading);

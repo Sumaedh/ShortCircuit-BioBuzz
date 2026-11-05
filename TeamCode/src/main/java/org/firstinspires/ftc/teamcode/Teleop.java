@@ -184,7 +184,7 @@ public class Teleop extends OpMode {
 
     private void applyDrive() {
         double forward = INVERT_FORWARD ? -gamepad1.left_stick_y : gamepad1.left_stick_y;
-        drivetrain.driveMecanum(forward, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        drivetrain.driveRobotCentric(forward, gamepad1.left_stick_x, gamepad1.right_stick_x);
     }
 
     private void applyIntake() {
