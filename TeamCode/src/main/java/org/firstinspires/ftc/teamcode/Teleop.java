@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+/*
 @TeleOp(name = "BIO-BUZZ TeleOp", group = "BIO-BUZZ")
 public class Teleop extends OpMode {
     private static final double TRIGGER_THRESHOLD     = 0.25;
@@ -263,3 +264,5 @@ public class Teleop extends OpMode {
         }
     }
 }
+
+ */
