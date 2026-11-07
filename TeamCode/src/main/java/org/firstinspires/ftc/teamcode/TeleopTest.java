@@ -28,6 +28,7 @@ public class TeleopTest extends OpMode {
     DcMotorEx leftIntakeMotor;
     Servo arm;
     Servo pitchServo;
+    Servo shotStopper;
 
     @Override
     public void init() {
@@ -56,6 +57,9 @@ public class TeleopTest extends OpMode {
 
         telemetry.addData("Status", "Testing Hub Initialized");
         telemetry.update();
+
+        shotStopper = hardwareMap.get(Servo.class, "shotStopper");
+        shotStopper.setDirection(Servo.Direction.REVERSE);
     }
 
     @Override

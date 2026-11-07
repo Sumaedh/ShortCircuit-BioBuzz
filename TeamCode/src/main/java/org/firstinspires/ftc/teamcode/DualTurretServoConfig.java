@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 
-@Config
+@Configurable
 public class DualTurretServoConfig {
     public static double ZERO_POSITION = 0.50;
 
