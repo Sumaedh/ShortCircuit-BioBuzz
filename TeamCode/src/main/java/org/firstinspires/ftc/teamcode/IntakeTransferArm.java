@@ -15,12 +15,12 @@ public class IntakeTransferArm {
 
     //TODO: FIND THESE
     public double ARM_UP = 0.0;
-    public double ARM_INTAKE_FLOWER = 0.25;
-    public double ARM_BLOCK = 0.5;
+    public double ARM_INTAKE_FLOWER = 0.482;
+    public double ARM_BLOCK = 0.25;
 
 
     //TODO: FIND THIS
-    public double SHOT_BLOCKED = 0.5;
+    public double SHOT_BLOCKED = 0.3;
     public double SHOT_OPEN = 0.0;
 
     public void initIntakeTransfer(HardwareMap hwMap) {
