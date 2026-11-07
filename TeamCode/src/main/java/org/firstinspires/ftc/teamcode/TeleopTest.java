@@ -18,6 +18,8 @@ public class TeleopTest extends OpMode {
     public static double fShooting = 0.0;
     public static double curTargetVelocity = 0.0;
 
+    public static double shooterPower = 0;
+
     public static double intakeMotorPower = 0.0;
     public static double armPos = 0.0;
     public static double pitchPos = 0.0;
@@ -30,19 +32,28 @@ public class TeleopTest extends OpMode {
     Servo pitchServo;
     Servo shotStopper;
 
+    // 0.32 for arm
+
+
+    private void applyShooterPIDF() {
+        PIDFCoefficients pidf = new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting);
+        leftShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
+        rightShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
+    }
+
     @Override
     public void init() {
         leftShootingMotor = hardwareMap.get(DcMotorEx.class, "leftShootingMotor");
         rightShootingMotor = hardwareMap.get(DcMotorEx.class, "rightShootingMotor");
 
-        leftShootingMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        leftShootingMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        leftShootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        //leftShootingMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        //leftShootingMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        //leftShootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         leftShootingMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        rightShootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightShootingMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightShootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        //rightShootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //rightShootingMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //rightShootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         applyShooterPIDF();
 
@@ -55,11 +66,11 @@ public class TeleopTest extends OpMode {
 
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
 
-        telemetry.addData("Status", "Testing Hub Initialized");
-        telemetry.update();
-
         shotStopper = hardwareMap.get(Servo.class, "shotStopper");
         shotStopper.setDirection(Servo.Direction.REVERSE);
+
+        telemetry.addData("Status", "Testing Hub Initialized");
+        telemetry.update();
     }
 
     @Override
@@ -67,6 +78,9 @@ public class TeleopTest extends OpMode {
         applyShooterPIDF();
         leftShootingMotor.setVelocity(curTargetVelocity);
         rightShootingMotor.setVelocity(curTargetVelocity);
+
+        //leftShootingMotor.setPower(shooterPower);
+        //rightShootingMotor.setPower(shooterPower);
 
         rightIntakeMotor.setPower(intakeMotorPower);
         leftIntakeMotor.setPower(intakeMotorPower);
@@ -77,19 +91,18 @@ public class TeleopTest extends OpMode {
         sendTestingTelemetry();
     }
 
-    private void applyShooterPIDF() {
-        PIDFCoefficients pidf = new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting);
-        leftShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
-        rightShootingMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidf);
-    }
+
 
     private void sendTestingTelemetry() {
+
         telemetry.addData("--- SHOOTER ---", "");
         telemetry.addData("Target Velocity", curTargetVelocity);
         telemetry.addData("Left Velocity", leftShootingMotor.getVelocity());
         telemetry.addData("Right Velocity", rightShootingMotor.getVelocity());
         telemetry.addData("P / I / D / F", pShooting + " / " + iShooting + " / " + dShooting + " / " + fShooting);
 
+
+        telemetry.addData("shooter power", shooterPower);
         telemetry.addData("--- INTAKE & ARM ---", "");
         telemetry.addData("Intake Power", intakeMotorPower);
         telemetry.addData("Arm Position", armPos);
@@ -97,15 +110,5 @@ public class TeleopTest extends OpMode {
         telemetry.addData("--- PITCH SERVO ---", "");
         telemetry.addData("Pitch Position", pitchPos);
         telemetry.update();
-    }
-
-    @Override
-    public void stop() {
-        curTargetVelocity = 0;
-        intakeMotorPower = 0;
-        leftShootingMotor.setVelocity(0);
-        rightShootingMotor.setVelocity(0);
-        rightIntakeMotor.setPower(0);
-        leftIntakeMotor.setPower(0);
     }
 }

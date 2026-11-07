@@ -17,7 +17,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 public class Turret extends OpMode {
     private DcMotorEx turretMotor;
 
-    // FOR BLUE
     GoBildaPinpointDriver pinpointDriver;
 
     private final double ticksPerRevolution = 537.7;
@@ -42,11 +41,6 @@ public class Turret extends OpMode {
     private final double startY = 132.7;
     private final double startHeading = 3.0 * Math.PI / 2.0;
 
-    // CELL opening centres (inches, Pedro field frame), derived from the official BIOBUZZ Field CAD
-    // (field-cad-step, v26-27.2). Accuracy is about +/-3 in. Measure them on the real field before a match.
-    // A CELL keeps the same horizontal position whether it is up or down, so these are the aim points
-    // for both states. Only the UP CELL is a valid target, and the game state decides which one is up.
-    // Left and right as seen by the blue drivers: left is the audience CELL, right is the far CELL.
     private final double targetXleft = 78.45;
     private final double targetYleft = 59.55;
     private final double targetXright = 88.55;
@@ -122,7 +116,6 @@ public class Turret extends OpMode {
         double motorRotations = turretMotor.getCurrentPosition() / ticksPerRevolution;
         double currentAngle = (motorRotations / gearRatio) * 2.0 * Math.PI + zeroOffsetAngle;
 
-        // Not normalized: the turret has hard stops, so it must never take the short way across them.
         double error = targetAngle - currentAngle;
 
         double now = timer.seconds();
