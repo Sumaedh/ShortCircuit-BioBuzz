@@ -10,7 +10,7 @@ public class IntakeTransferArm {
     DcMotorEx rightIntakeMotor, leftIntakeMotor;
     Servo arm, shotStopper;
 
-    public double INTAKE_POWER = 0.67;
+    public double INTAKE_POWER = 0.8;
 
 
     public double ARM_UP = 0.0;
@@ -19,7 +19,7 @@ public class IntakeTransferArm {
 
 
     //TODO: FIND THIS
-    public double SHOT_BLOCKED = 0.3;
+    public double SHOT_BLOCKED = 0.15;
     public double SHOT_OPEN = 0.0;
 
     public void initIntakeTransfer(HardwareMap hwMap) {
@@ -32,7 +32,6 @@ public class IntakeTransferArm {
         arm.setDirection(Servo.Direction.REVERSE);
 
         shotStopper = hwMap.get(Servo.class, "shotStopper");
-        shotStopper.setDirection(Servo.Direction.REVERSE);
 
         stopShoot();
         armUp();

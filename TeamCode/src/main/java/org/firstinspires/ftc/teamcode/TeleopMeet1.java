@@ -34,17 +34,24 @@ public class TeleopMeet1 extends OpMode {
         //SHOOTER
         if (gamepad1.right_trigger > 0.75) {
             shooter.setCurTargetVelocity("on");
+            ita.continueShoot();
         } else {
             shooter.setCurTargetVelocity("off");
+            ita.stopShoot();
         }
 
         shooter.PIDFShootingLoop();
 
         // STOPPER
+        /*
         if (shooter.shooterAtTarget() && shooter.curTargetVelocity != 0) {
             ita.continueShoot();
             ita.intakeOn();
+        } else {
+            ita.stopShoot();
         }
+
+         */
 
         // INTAKE
         if (gamepad1.aWasPressed()) {

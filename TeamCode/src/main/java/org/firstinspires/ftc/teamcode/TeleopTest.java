@@ -67,7 +67,6 @@ public class TeleopTest extends OpMode {
         pitchServo = hardwareMap.get(Servo.class, "pitchServo");
 
         shotStopper = hardwareMap.get(Servo.class, "shotStopper");
-        shotStopper.setDirection(Servo.Direction.REVERSE);
 
         telemetry.addData("Status", "Testing Hub Initialized");
         telemetry.update();

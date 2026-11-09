@@ -8,7 +8,7 @@ public class Pitch {
     Servo pitchServo;
 
     //TODO: FIND THIS
-    public double POS_DOWN = 0;
+    public double POS_DOWN = 0.59;
 
     public void initPitch(HardwareMap hwMap) {
         pitchServo = hwMap.get(Servo.class, "pitchServo");
