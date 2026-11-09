@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.pedro;
 
 import com.pedropathing.api.Paths;
@@ -179,4 +180,4 @@ public class Blue2Auto extends LinearOpMode {
         return Paths.curve(endPickup, returnControl1, returnControl2, finalShot)
                 .heading(AutoActions.linearHeading(endPickup, finalShot));
     }
-}
+}*/
