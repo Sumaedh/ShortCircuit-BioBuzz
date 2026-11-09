@@ -32,19 +32,40 @@ public class Drivetrain {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
+        /*
         imu = hwMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
         ));
         imu.initialize(parameters);
+
+         */
     }
 
-    public void driveMecanum(double leftY, double leftX, double rightX) {
+
+    public void driveMecanum(double left_y, double left_x, double right_x){
+        double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
+        frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
+        frontRight.setPower((-left_y - left_x - right_x) / maxPower);
+        backLeft.setPower((-left_y - left_x + right_x) / maxPower);
+        backRight.setPower((-left_y + left_x - right_x) / maxPower);
+    }
+
+    public void driveMecanumSlower(double left_y, double left_x, double right_x){
+        double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
+        frontLeft.setPower(((-left_y + left_x + right_x) / maxPower) / 3);
+        frontRight.setPower(((-left_y - left_x - right_x) / maxPower) / 3);
+        backLeft.setPower(((-left_y - left_x + right_x) / maxPower) / 3);
+        backRight.setPower(((-left_y + left_x - right_x) / maxPower) / 3);
+    }
+
+
+    public void driveMecanum1(double leftY, double leftX, double rightX) {
         driveFieldCentric(leftY, leftX, rightX, NORMAL_SCALE);
     }
 
-    public void driveMecanumSlower(double leftY, double leftX, double rightX) {
+    public void driveMecanumSlower1(double leftY, double leftX, double rightX) {
         driveFieldCentric(leftY, leftX, rightX, SLOW_SCALE);
     }
 
