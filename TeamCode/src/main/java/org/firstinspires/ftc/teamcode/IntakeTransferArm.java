@@ -13,7 +13,6 @@ public class IntakeTransferArm {
     public double INTAKE_POWER = 0.67;
 
 
-    //TODO: FIND THESE
     public double ARM_UP = 0.0;
     public double ARM_INTAKE_FLOWER = 0.482;
     public double ARM_BLOCK = 0.25;
