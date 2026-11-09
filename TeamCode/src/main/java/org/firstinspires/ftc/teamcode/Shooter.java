@@ -81,12 +81,12 @@ public class Shooter {
     public void PIDFShootingLoop() {
         leftShootingMotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, 0, fShooting)
+                new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting)
         );
 
         rightShootingMotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(pShooting, 0, 0, fShooting)
+                new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting)
         );
 
         leftShootingMotor.setVelocity(curTargetVelocity);
