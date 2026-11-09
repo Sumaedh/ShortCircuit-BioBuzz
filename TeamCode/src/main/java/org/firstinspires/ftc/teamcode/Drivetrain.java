@@ -21,10 +21,10 @@ public class Drivetrain {
         backLeft = hwMap.get(DcMotorEx.class, "backLeft");
         backRight = hwMap.get(DcMotorEx.class, "backRight");
 
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         for (DcMotor motor : new DcMotor[]{frontLeft, frontRight, backLeft, backRight}) {
             motor.setPower(0);
@@ -46,18 +46,18 @@ public class Drivetrain {
 
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
-        frontRight.setPower((-left_y - left_x - right_x) / maxPower);
-        backLeft.setPower((-left_y - left_x + right_x) / maxPower);
-        backRight.setPower((-left_y + left_x - right_x) / maxPower);
+        frontLeft.setPower((left_y - left_x - right_x) / maxPower);
+        frontRight.setPower((left_y + left_x + right_x) / maxPower);
+        backLeft.setPower((left_y + left_x - right_x) / maxPower);
+        backRight.setPower((left_y - left_x + right_x) / maxPower);
     }
 
     public void driveMecanumSlower(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower(((-left_y + left_x + right_x) / maxPower) / 3);
-        frontRight.setPower(((-left_y - left_x - right_x) / maxPower) / 3);
-        backLeft.setPower(((-left_y - left_x + right_x) / maxPower) / 3);
-        backRight.setPower(((-left_y + left_x - right_x) / maxPower) / 3);
+        frontLeft.setPower(((left_y - left_x - right_x) / maxPower) / 3);
+        frontRight.setPower(((left_y + left_x + right_x) / maxPower) / 3);
+        backLeft.setPower(((left_y + left_x - right_x) / maxPower) / 3);
+        backRight.setPower(((left_y - left_x + right_x) / maxPower) / 3);
     }
 
 
