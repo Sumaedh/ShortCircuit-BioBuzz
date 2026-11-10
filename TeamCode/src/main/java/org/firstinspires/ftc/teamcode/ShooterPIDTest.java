@@ -7,8 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.bylazar.configurables.annotations.Configurable;
 
-
+@Configurable
 @TeleOp(name = "ShooterPIDTest")
 public class ShooterPIDTest extends OpMode {
 
@@ -70,6 +71,14 @@ public class ShooterPIDTest extends OpMode {
 
         leftShootingMotor.setVelocity(curTargetVelocity);
         rightShootingMotor.setVelocity(curTargetVelocity);
+
+        telemetry.addData("p value: ", pShooting);
+        telemetry.addData("i value: ", iShooting);
+        telemetry.addData("d value: ", dShooting);
+        telemetry.addData("f value: ", fShooting);
+        telemetry.addData("target velocity: ", curTargetVelocity);
+        telemetry.addData("error (left): ", curTargetVelocity - leftShootingMotor.getVelocity());
+        telemetry.addData("error (right): ", curTargetVelocity - rightShootingMotor.getVelocity());
 
     }
 }

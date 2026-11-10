@@ -19,8 +19,8 @@ public class IntakeTransferArm {
 
 
     //TODO: FIND THIS
-    public double SHOT_BLOCKED = 0.15;
-    public double SHOT_OPEN = 0.0;
+    public double SHOT_BLOCKED = 0;
+    public double SHOT_OPEN = 0.15;
 
     public void initIntakeTransfer(HardwareMap hwMap) {
         rightIntakeMotor = hwMap.get(DcMotorEx.class, "rightIntakeMotor");
