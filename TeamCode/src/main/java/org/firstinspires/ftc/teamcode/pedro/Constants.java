@@ -5,12 +5,15 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
+import com.pedropathing.revhub.localizers.PinpointConfig;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 public class Constants {
-    public static final String NOT_READY =
-            "AUTO NOT READY: paste tuner output into pedro/Constants.java";
+
 
     // Names and directions match Drivetrain.java. Confirm directions with the Mecanum Tuner.
     public static final MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
@@ -24,25 +27,15 @@ public class Constants {
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
     });
 
-    // TODO: paste the localizer tuner's config above and return it here, for example:
-    //   return new PinpointLocalizer(h, localizerConfig);
-    private static Localizer createLocalizer(HardwareMap h) {
-        return null;
-    }
+    public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
+        c.name.set("pinpoint");
+        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        c.xPodOffset.set(-0.7817133956068145);
+        c.yPodOffset.set(5.65642169141394);
+        c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        c.globalDistanceUnit.set(DistanceUnit.INCH);
+        c.offsetUnits.set(DistanceUnit.INCH);
+    });
 
-    // TODO: paste the Foresight Tuner's config above and return it here, for example:
-    //   return new Foresight(foresightConfig);
-    private static Algorithm createAlgorithm() {
-        return null;
-    }
-
-    /** Returns null until the measured tuner values above are filled in. */
-    public static Follower create(HardwareMap h) {
-        Localizer localizer = createLocalizer(h);
-        Algorithm algorithm = createAlgorithm();
-        if (localizer == null || algorithm == null) {
-            return null;
-        }
-        return new Follower(localizer, new Mecanum(h, drivetrainConfig), algorithm);
-    }
 }

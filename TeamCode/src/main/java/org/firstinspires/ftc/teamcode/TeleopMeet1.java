@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -7,12 +8,16 @@ import org.jetbrains.annotations.TestOnly;
 
 @TeleOp(name = "TeleopMeet1")
 public class TeleopMeet1 extends OpMode {
-
     Drivetrain dt = new Drivetrain();
     IntakeTransferArm ita = new IntakeTransferArm();
     Shooter shooter = new Shooter();
     Pitch pitch = new Pitch();
+
+    //Lights lights = new Lights();
+
     // wfhurfrufhuxfx9hf389
+
+    private Follower follower;
 
     @Override
     public void init() {
@@ -20,6 +25,9 @@ public class TeleopMeet1 extends OpMode {
         ita.initIntakeTransfer(hardwareMap);
         shooter.initShooter(hardwareMap);
         pitch.initPitch(hardwareMap);
+        //lights.initLights(hardwareMap);
+
+        //follower = Constants.create(hardwareMap);
     }
 
     @Override
@@ -32,8 +40,18 @@ public class TeleopMeet1 extends OpMode {
             dt.driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
+        // PEDRO
+        /*
+        follower.manual(
+                -gamepad1.left_stick_y,
+                gamepad1.left_stick_x,
+                gamepad1.right_stick_x
+        );
+        follower.update();
+         */
+
         //SHOOTER
-        if (gamepad1.right_trigger > 0.75) {
+        if (gamepad2.right_trigger > 0.75) {
             shooter.setCurTargetVelocity("on");
             ita.continueShoot();
         } else {
@@ -43,16 +61,23 @@ public class TeleopMeet1 extends OpMode {
 
         shooter.PIDFShootingLoop();
 
-        // STOPPER
+
+        // LIGHTS
         /*
         if (shooter.shooterAtTarget() && shooter.curTargetVelocity != 0) {
-            ita.continueShoot();
-            ita.intakeOn();
+            lights.ready();
         } else {
-            ita.stopShoot();
+            lights.notReady();
         }
 
          */
+
+        // STOPPER
+        if (gamepad2.left_trigger > 0.75) {
+            ita.continueShoot();
+        } else {
+            ita.stopShoot();
+        }
 
         // INTAKE
         if (gamepad1.aWasPressed()) {
@@ -61,7 +86,10 @@ public class TeleopMeet1 extends OpMode {
             ita.intakeOff();
         } else if (gamepad1.yWasPressed()) {
             ita.intakeReverse();
+        } else if (ita.shotStopper.getPosition() == 0) {
+            ita.setPower(0.6);
         }
+
 
 
         // ARM
