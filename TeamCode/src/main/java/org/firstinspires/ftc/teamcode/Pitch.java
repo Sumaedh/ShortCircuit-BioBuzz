@@ -8,15 +8,19 @@ public class Pitch {
     Servo pitchServo;
 
     //TODO: FIND THIS
-    public double POS_DOWN = 0.59;
+    public double POS_DOWN = 0.75;
 
     public void initPitch(HardwareMap hwMap) {
         pitchServo = hwMap.get(Servo.class, "pitchServo");
-        pitchDown();
+        pitchForShoot();
     }
 
     public void pitchUp() {
-        pitchServo.setPosition(0.05);
+        pitchServo.setPosition(0.15);
+    }
+
+    public void pitchForShoot() {
+        pitchServo.setPosition(0.15);
     }
 
     public void pitchDown() {

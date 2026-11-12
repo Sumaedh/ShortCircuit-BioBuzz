@@ -39,23 +39,25 @@ public class IntakeTransferArm {
     }
 
     public void intakeOn() {
-        setPower(INTAKE_POWER);
+        leftIntakeMotor.setPower(0.8);
+        rightIntakeMotor.setPower(0.25);
     }
 
     public void intakeOff() {
-        setPower(0);
+        leftIntakeMotor.setPower(0);
+        rightIntakeMotor.setPower(0);
     }
 
     public void intakeReverse() {
-        setPower(-INTAKE_POWER);
+        leftIntakeMotor.setPower(-0.5);
+        rightIntakeMotor.setPower(-0.5);
     }
 
-    public void transferShoot(){ setPower(0.6);}
-
-    private void setPower(double power) {
-        if (leftIntakeMotor != null) leftIntakeMotor.setPower(power);
-        if (rightIntakeMotor != null) rightIntakeMotor.setPower(power);
+    public void transferShoot(){
+        leftIntakeMotor.setPower(0.3);
+        rightIntakeMotor.setPower(0.8);
     }
+
 
     public void armUp() {
         arm.setPosition(ARM_UP);

@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @Configurable
 @TeleOp(name = "ShooterPIDTest")
@@ -15,19 +16,25 @@ public class ShooterPIDTest extends OpMode {
 
     DcMotorEx leftShootingMotor, rightShootingMotor;
 
+    Servo pitchServo;
+
     public static double fShooting = 0;
     public static double pShooting = 0;
     public static double iShooting = 0;
     public static double dShooting = 0;
 
     DcMotorEx rightIntakeMotor, leftIntakeMotor;
-    public static double intakePower = 0;
+
+    public static double pitchPos = 0.2;
 
 
     // TODO: FIND THIS VALUE
     public static double CUSTOM_TARGET_VELOCITY = 000;
     public static double curTargetVelocity = 0;
     public static double SHOOTER_TOLERANCE = 50;
+
+    public static double leftIntakePower = 0;
+    public static double rightIntakePower = 0;
 
     private void applyShooterPIDF() {
         PIDFCoefficients pidf = new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting);
@@ -47,6 +54,8 @@ public class ShooterPIDTest extends OpMode {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
 
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        pitchServo = hardwareMap.get(Servo.class, "pitchServo");
 
         leftShootingMotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER,
@@ -80,8 +89,10 @@ public class ShooterPIDTest extends OpMode {
         leftShootingMotor.setVelocity(curTargetVelocity);
         rightShootingMotor.setVelocity(curTargetVelocity);
 
-        leftIntakeMotor.setPower(intakePower);
-        rightIntakeMotor.setPower(intakePower);
+        pitchServo.setPosition(pitchPos);
+
+        leftIntakeMotor.setPower(leftIntakePower);
+        rightIntakeMotor.setPower(rightIntakePower);
 
         telemetry.addData("p value: ", pShooting);
         telemetry.addData("i value: ", iShooting);

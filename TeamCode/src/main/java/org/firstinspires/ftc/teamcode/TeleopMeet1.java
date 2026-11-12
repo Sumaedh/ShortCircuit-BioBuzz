@@ -40,6 +40,7 @@ public class TeleopMeet1 extends OpMode {
             dt.driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
+        pitch.pitchForShoot();
         // PEDRO
         /*
         follower.manual(
@@ -50,13 +51,11 @@ public class TeleopMeet1 extends OpMode {
         follower.update();
          */
 
-        //SHOOTER
-        if (gamepad2.right_trigger > 0.75) {
+        //SHOOTER - GAMEPAD 1 RIGHT TRIGGER
+        if (gamepad1.right_trigger > 0.75) {
             shooter.setCurTargetVelocity("on");
-            ita.continueShoot();
         } else {
             shooter.setCurTargetVelocity("off");
-            ita.stopShoot();
         }
 
         shooter.PIDFShootingLoop();
@@ -72,12 +71,6 @@ public class TeleopMeet1 extends OpMode {
 
          */
 
-        // STOPPER
-        if (gamepad2.left_trigger > 0.75) {
-            ita.continueShoot();
-        } else {
-            ita.stopShoot();
-        }
 
         // INTAKE
         if (gamepad1.aWasPressed()) {
@@ -86,10 +79,9 @@ public class TeleopMeet1 extends OpMode {
             ita.intakeOff();
         } else if (gamepad1.yWasPressed()) {
             ita.intakeReverse();
-        } else if (ita.shotStopper.getPosition() == 0) {
-            ita.setPower(0.6);
+        } else if (gamepad1.xWasPressed()) {
+            ita.transferShoot();
         }
-
 
 
         // ARM
@@ -98,6 +90,10 @@ public class TeleopMeet1 extends OpMode {
         } else if (gamepad1.dpadDownWasPressed()) {
             ita.intakeFlower();
         }
+
+        telemetry.addData("target velocity: ", shooter.curTargetVelocity);
+        telemetry.addData("error (left): ", shooter.curTargetVelocity - shooter.leftShootingMotor.getVelocity());
+        telemetry.addData("error (right): ", shooter.curTargetVelocity - shooter.rightShootingMotor.getVelocity());
 
     }
 }

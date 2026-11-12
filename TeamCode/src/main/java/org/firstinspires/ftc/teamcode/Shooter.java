@@ -9,14 +9,14 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 public class Shooter {
     DcMotorEx leftShootingMotor, rightShootingMotor;
 
-    public double fShooting = 0;
-    public double pShooting = 100;
+    public double fShooting = 100;
+    public double pShooting = 40;
     public double iShooting = 0;
     public double dShooting = 0;
 
 
     // TODO: FIND THIS VALUE
-    public double CUSTOM_TARGET_VELOCITY = 2100;
+    public double CUSTOM_TARGET_VELOCITY = 1100;
     public double curTargetVelocity = 0;
     public double SHOOTER_TOLERANCE = 50;
 
@@ -32,6 +32,8 @@ public class Shooter {
         rightShootingMotor = hwMap.get(DcMotorEx.class, "rightShootingMotor");
 
         leftShootingMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightShootingMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
         applyShooterPIDF();
 
         leftShootingMotor.setPIDFCoefficients(
