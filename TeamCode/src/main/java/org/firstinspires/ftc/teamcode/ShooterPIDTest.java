@@ -20,6 +20,9 @@ public class ShooterPIDTest extends OpMode {
     public static double iShooting = 0;
     public static double dShooting = 0;
 
+    DcMotorEx rightIntakeMotor, leftIntakeMotor;
+    public static double intakePower = 0;
+
 
     // TODO: FIND THIS VALUE
     public static double CUSTOM_TARGET_VELOCITY = 000;
@@ -39,6 +42,11 @@ public class ShooterPIDTest extends OpMode {
 
         leftShootingMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         applyShooterPIDF();
+
+        rightIntakeMotor = hardwareMap.get(DcMotorEx.class, "rightIntakeMotor");
+        leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
+
+        leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftShootingMotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER,
@@ -71,6 +79,9 @@ public class ShooterPIDTest extends OpMode {
 
         leftShootingMotor.setVelocity(curTargetVelocity);
         rightShootingMotor.setVelocity(curTargetVelocity);
+
+        leftIntakeMotor.setPower(intakePower);
+        rightIntakeMotor.setPower(intakePower);
 
         telemetry.addData("p value: ", pShooting);
         telemetry.addData("i value: ", iShooting);

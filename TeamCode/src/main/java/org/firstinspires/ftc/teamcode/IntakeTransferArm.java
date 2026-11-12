@@ -50,6 +50,8 @@ public class IntakeTransferArm {
         setPower(-INTAKE_POWER);
     }
 
+    public void transferShoot(){ setPower(0.6);}
+
     private void setPower(double power) {
         if (leftIntakeMotor != null) leftIntakeMotor.setPower(power);
         if (rightIntakeMotor != null) rightIntakeMotor.setPower(power);

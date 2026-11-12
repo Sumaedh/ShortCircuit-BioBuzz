@@ -1,3 +1,4 @@
+/*
 package org.firstinspires.ftc.teamcode.pedro;
 
 import com.pedropathing.api.Paths;
@@ -62,6 +63,62 @@ public class Blue1Auto extends LinearOpMode {
 
     private final Pose parkPose = poseFactory.of(130.8, 40.3, 0);
     private final Pose parkControl = poseFactory.of(121, 101, 0);
+
+    public Path toSideFlower() {
+        return Paths.curve(startShot, sideControl1, sideControl2, sideApproach)
+                .linear(startShot, sideApproach);
+    }
+
+    public Path intakeSideFlower() {
+        return Paths.line(sideApproach, sidePickup)
+                .linear(sideApproach, sidePickup);
+    }
+
+    public Path toFarShot() {
+        return Paths.curve(sidePickup, farShotControl1, farShotControl2, farShot)
+                .linear(sidePickup, farShot);
+    }
+
+    public Path toEndFlower() {
+        return Paths.curve(farShot, endControl1, endControl2, endApproach)
+                .linear(farShot, endApproach);
+    }
+
+    public Path intakeEndFlower() {
+        return Paths.line(endApproach, endPickup)
+                .linear(endApproach, endPickup);
+    }
+
+    public Path backOutOfEndFlower() {
+        return Paths.line(endPickup, endApproach)
+                .linear(endPickup, endApproach);
+    }
+
+    public Path backToFarShot() {
+        return Paths.curve(endApproach, endControl2, endControl1, farShot)
+                .linear(endApproach, farShot);
+    }
+
+    public Path toGarden() {
+        return Paths.curve(farShot, gardenControl1, gardenControl2, gardenStart)
+                .linear(farShot, gardenStart);
+    }
+
+    public Path intakeGarden() {
+        return Paths.line(gardenStart, gardenEnd)
+                .linear(gardenStart, gardenEnd);
+    }
+
+    public Path toFinalShot() {
+        return Paths.curve(gardenEnd, returnControl1, returnControl2, finalShot)
+                .linear(gardenEnd, finalShot);
+    }
+
+    public Path toPark() {
+        return Paths.curve(finalShot, parkControl, parkPose)
+                .linear(finalShot, parkPose);
+    }
+
 
     public Command autoRoutine() {
         return sequential(
@@ -149,59 +206,4 @@ public class Blue1Auto extends LinearOpMode {
             if (follower != null) { follower.stop(); follower.drivetrain.stop(); }
         }
     }
-
-    public Path toSideFlower() {
-        return Paths.curve(startShot, sideControl1, sideControl2, sideApproach)
-                .linear(startShot, sideApproach);
-    }
-
-    public Path intakeSideFlower() {
-        return Paths.line(sideApproach, sidePickup)
-                .linear(sideApproach, sidePickup);
-    }
-
-    public Path toFarShot() {
-        return Paths.curve(sidePickup, farShotControl1, farShotControl2, farShot)
-                .linear(sidePickup, farShot);
-    }
-
-    public Path toEndFlower() {
-        return Paths.curve(farShot, endControl1, endControl2, endApproach)
-                .linear(farShot, endApproach);
-    }
-
-    public Path intakeEndFlower() {
-        return Paths.line(endApproach, endPickup)
-                .linear(endApproach, endPickup);
-    }
-
-    public Path backOutOfEndFlower() {
-        return Paths.line(endPickup, endApproach)
-                .linear(endPickup, endApproach);
-    }
-
-    public Path backToFarShot() {
-        return Paths.curve(endApproach, endControl2, endControl1, farShot)
-                .linear(endApproach, farShot);
-    }
-
-    public Path toGarden() {
-        return Paths.curve(farShot, gardenControl1, gardenControl2, gardenStart)
-                .linear(farShot, gardenStart);
-    }
-
-    public Path intakeGarden() {
-        return Paths.line(gardenStart, gardenEnd)
-                .linear(gardenStart, gardenEnd);
-    }
-
-    public Path toFinalShot() {
-        return Paths.curve(gardenEnd, returnControl1, returnControl2, finalShot)
-                .linear(gardenEnd, finalShot);
-    }
-
-    public Path toPark() {
-        return Paths.curve(finalShot, parkControl, parkPose)
-                .linear(finalShot, parkPose);
-    }
-}
+}*/
