@@ -26,7 +26,7 @@
 //    private Follower follower;
 //    private final IntakeTransferArm in = new IntakeTransferArm();
 //    private final Shooter sh = new Shooter();
-//    private final Sensors sensors = new Sensors();
+//    //private final Sensors sensors = new Sensors();
 //    private String status = "Waiting for start";
 //
 //    private static final double AUTO_WATCHDOG_SECONDS = 30.0;
@@ -102,7 +102,7 @@
 //            BulkCaching.enableAuto(hardwareMap);
 //            in.initIntakeTransfer(hardwareMap);
 //            sh.initShooter(hardwareMap);
-//            sensors.initSensors(hardwareMap);
+//            //sensors.initSensors(hardwareMap);
 //
 //            follower = Constants.create(hardwareMap);
 //            if (follower == null) {
@@ -130,7 +130,7 @@
 //                telemetry.addData("Heading degrees", Math.toDegrees(follower.pose().heading()));
 //                telemetry.addData("Shooter target", sh.curTargetVelocity);
 //                telemetry.addData("Shooter left / right", sh.getVelocity() + " / " + sh.getVelocity2());
-//                telemetry.addData("Storage full", sensors.lastFull());
+//                //telemetry.addData("Storage full", sensors.lastFull());
 //                telemetry.update();
 //                if ((System.nanoTime() * 1e-9) - startTime > AUTO_WATCHDOG_SECONDS) {
 //                    telemetry.addLine("Autonomous time limit reached");

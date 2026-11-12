@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class IntakeTransferArm {
     DcMotorEx rightIntakeMotor, leftIntakeMotor;
-    public Servo arm, shotStopper;
+    Servo arm, shotStopper;
 
     public double INTAKE_POWER = 0.8;
 
@@ -50,7 +50,9 @@ public class IntakeTransferArm {
         setPower(-INTAKE_POWER);
     }
 
-    public void setPower(double power) {
+    public void transferShoot(){ setPower(0.6);}
+
+    private void setPower(double power) {
         if (leftIntakeMotor != null) leftIntakeMotor.setPower(power);
         if (rightIntakeMotor != null) rightIntakeMotor.setPower(power);
     }
