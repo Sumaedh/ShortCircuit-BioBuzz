@@ -53,7 +53,6 @@ public class Meet1Red1 extends OpMode {
                     ita.stopShoot();
                     shooter.setCurTargetVelocity("off");
                     state = State.DONE;
-                    // fijro
                 }
                 break;
 

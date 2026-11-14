@@ -34,7 +34,7 @@ public class Meet1Blue1 extends OpMode {
         shooter.setCurTargetVelocity("on");
         timer.reset();
         state = State.SPIN_UP;
-        // fijsijsfij
+
     }
 
     @Override
