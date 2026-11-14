@@ -4,14 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.teamcode.IntakeTransferArm;
 import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 
-public abstract class Meet1Autobase extends OpMode {
 
+public abstract class Meet1Autobase extends OpMode {
 
     private static final String FRONT_LEFT_NAME  = "frontLeft";
     private static final String FRONT_RIGHT_NAME = "frontRight";
@@ -27,7 +26,7 @@ public abstract class Meet1Autobase extends OpMode {
     private static final double PARK_POWER = 0.4;
 
     private static final double SHOOTER_TIMEOUT_MS  = 3000;
-    private static final double FEED_MS             = 2000;
+    private static final double FEED_MS = 2000;
     private static final double PARK_LEG_TIMEOUT_MS = 4000;
 
     private enum State { SPIN_UP, FEED, PARK_FORWARD, PARK_STRAFE, DONE }
@@ -51,10 +50,10 @@ public abstract class Meet1Autobase extends OpMode {
         shooter.initShooter(hardwareMap);
         pitch.initPitch(hardwareMap);
 
-        frontLeft  = hardwareMap.get(DcMotor.class, (SerialNumber) frontLeft);
-        frontRight = hardwareMap.get(DcMotor.class, (SerialNumber) frontRight);
-        backLeft   = hardwareMap.get(DcMotor.class, (SerialNumber) backLeft);
-        backRight  = hardwareMap.get(DcMotor.class, (SerialNumber) backRight);
+        frontLeft  = hardwareMap.get(DcMotor.class, FRONT_LEFT_NAME);
+        frontRight = hardwareMap.get(DcMotor.class, FRONT_RIGHT_NAME);
+        backLeft   = hardwareMap.get(DcMotor.class, BACK_LEFT_NAME);
+        backRight  = hardwareMap.get(DcMotor.class, BACK_RIGHT_NAME);
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -128,7 +127,6 @@ public abstract class Meet1Autobase extends OpMode {
     public void stop() {
         stopDrive();
     }
-
 
     private DcMotor[] driveMotors() {
         return new DcMotor[] { frontLeft, frontRight, backLeft, backRight };
