@@ -4,6 +4,10 @@ import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.bylazar.configurables.annotations.Configurable;
+
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -14,6 +18,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "TeleopMeet1TESTING")
 public class TeleopMeet1Test extends OpMode {
     Drivetrain dt = new Drivetrain();
+
+    private TelemetryManager panelsTelemetry;
 
     DcMotorEx rightIntakeMotor, leftIntakeMotor;
     Servo arm, shotStopper;
@@ -27,15 +33,15 @@ public class TeleopMeet1Test extends OpMode {
 
 
     //TODO: FIND THIS
-    public static double SHOT_BLOCKED = 0.07;
+    public static double SHOT_BLOCKED = 0.04;
     public static double SHOT_OPEN = 0.09;
 
 
     public static double leftIntakeOn = 0.8;
-    public static double rightIntakeOn = 0.17;
+    public static double rightIntakeOn = 0.2;
 
-    public static double leftTransferOn = 0.8;
-    public static double rightTransferOn = 0.8;
+    public static double leftTransferOn = 1;
+    public static double rightTransferOn = 1;
 
 
     //Lights lights = new Lights();
@@ -43,20 +49,20 @@ public class TeleopMeet1Test extends OpMode {
     // wfhurfrufhuxfx9hf389sijofesijoiesfjojisdopjfaopf
 
     Servo pitchServo;
-    public static double pitchPos = 0.08;
+    public static double pitchPos = 0.04;
     //0.05
     DcMotorEx leftShootingMotor, rightShootingMotor;
 
-    public static double fShooting = 22;
+    public static double fShooting = 24;
     //22
-    public static double pShooting = 50;
+    public static double pShooting = 170;
     //50
     public static double iShooting = 0;
     public static double dShooting = 0;
 
 
     // TODO: FIND THIS VALUE
-    public static double CUSTOM_TARGET_VELOCITY = 1200;
+    public static double CUSTOM_TARGET_VELOCITY = 965;
     //1175
     public double curTargetVelocity = 0;
     public static double SHOOTER_TOLERANCE = 50;
@@ -116,6 +122,9 @@ public class TeleopMeet1Test extends OpMode {
 
     @Override
     public void init() {
+
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
         dt.initDrivetrain(hardwareMap);
 
         rightIntakeMotor = hardwareMap.get(DcMotorEx.class, "rightIntakeMotor");
@@ -248,9 +257,12 @@ public class TeleopMeet1Test extends OpMode {
             intakeFlower();
         }
 
-        telemetry.addData("target velocity: ", curTargetVelocity);
-        telemetry.addData("error (left): ", curTargetVelocity - leftShootingMotor.getVelocity());
-        telemetry.addData("error (right): ", curTargetVelocity - rightShootingMotor.getVelocity());
+        double left = leftShootingMotor.getVelocity();
+        double right = rightShootingMotor.getVelocity();
 
+        panelsTelemetry.addData("curTargetVelocity", curTargetVelocity);
+        panelsTelemetry.addData("left", left);
+        panelsTelemetry.addData("right", right);
+        panelsTelemetry.update(telemetry);
     }
 }

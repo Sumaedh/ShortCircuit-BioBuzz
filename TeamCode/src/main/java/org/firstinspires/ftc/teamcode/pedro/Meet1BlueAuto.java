@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.IntakeTransferArm;
 import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 
-@Autonomous
+//@Autonomous
 public abstract class Meet1BlueAuto extends OpMode {
 
     private Follower follower;

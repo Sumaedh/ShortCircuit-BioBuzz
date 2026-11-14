@@ -46,18 +46,18 @@ public class Drivetrain {
 
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower((left_y + left_x + right_x) / maxPower);
-        frontRight.setPower((left_y - left_x - right_x) / maxPower);
-        backLeft.setPower((left_y - left_x + right_x) / maxPower);
-        backRight.setPower((left_y + left_x - right_x) / maxPower);
+        frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
+        frontRight.setPower((-left_y - left_x - right_x) / maxPower);
+        backLeft.setPower((-left_y - left_x + right_x) / maxPower);
+        backRight.setPower((-left_y + left_x - right_x) / maxPower);
     }
 
     public void driveMecanumSlower(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
-        frontLeft.setPower(((left_y + left_x + right_x) / maxPower) / 3);
-        frontRight.setPower(((left_y - left_x - right_x) / maxPower) / 3);
-        backLeft.setPower(((left_y - left_x + right_x) / maxPower) / 3);
-        backRight.setPower(((left_y + left_x - right_x) / maxPower) / 3);
+        frontLeft.setPower(((-left_y + left_x + right_x) / maxPower) / 3);
+        frontRight.setPower(((-left_y - left_x - right_x) / maxPower) / 3);
+        backLeft.setPower(((-left_y - left_x + right_x) / maxPower) / 3);
+        backRight.setPower(((-left_y + left_x - right_x) / maxPower) / 3);
     }
 
 

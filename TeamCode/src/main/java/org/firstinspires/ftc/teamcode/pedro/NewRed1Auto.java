@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.IntakeTransferArm;
 import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 
-@Autonomous
+//@Autonomous
 public class NewRed1Auto extends OpMode {
 
     // SETUP
