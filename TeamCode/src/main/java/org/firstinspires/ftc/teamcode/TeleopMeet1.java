@@ -35,9 +35,9 @@ public class TeleopMeet1 extends OpMode {
 
         //DRIVETRAIN
         if (gamepad1.left_trigger > 0.75) {
-            dt.driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        } else {
             dt.driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        } else {
+            dt.driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
         pitch.pitchForShoot();
@@ -52,7 +52,7 @@ public class TeleopMeet1 extends OpMode {
          */
 
         //SHOOTER - GAMEPAD 1 RIGHT TRIGGER
-        if (gamepad1.right_trigger > 0.75) {
+        if (gamepad2.right_trigger > 0.75) {
             shooter.setCurTargetVelocity("on");
         } else {
             shooter.setCurTargetVelocity("off");
@@ -75,12 +75,15 @@ public class TeleopMeet1 extends OpMode {
         // INTAKE
         if (gamepad1.aWasPressed()) {
             ita.intakeOn();
+            ita.stopShoot();
         } else if (gamepad1.bWasPressed()) {
             ita.intakeOff();
+            ita.stopShoot();
         } else if (gamepad1.yWasPressed()) {
             ita.intakeReverse();
         } else if (gamepad1.xWasPressed()) {
             ita.transferShoot();
+            ita.continueShoot();
         }
 
 

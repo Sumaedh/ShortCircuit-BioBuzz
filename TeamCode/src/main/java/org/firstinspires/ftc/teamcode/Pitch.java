@@ -20,7 +20,7 @@ public class Pitch {
     }
 
     public void pitchForShoot() {
-        pitchServo.setPosition(0.15);
+        pitchServo.setPosition(0.03);
     }
 
     public void pitchDown() {

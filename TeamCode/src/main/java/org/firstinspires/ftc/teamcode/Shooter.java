@@ -9,14 +9,14 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 public class Shooter {
     DcMotorEx leftShootingMotor, rightShootingMotor;
 
-    public double fShooting = 100;
-    public double pShooting = 40;
+    public double fShooting = 25;
+    public double pShooting = 55;
     public double iShooting = 0;
     public double dShooting = 0;
 
 
     // TODO: FIND THIS VALUE
-    public double CUSTOM_TARGET_VELOCITY = 1100;
+    public double CUSTOM_TARGET_VELOCITY = 1080;
     public double curTargetVelocity = 0;
     public double SHOOTER_TOLERANCE = 50;
 

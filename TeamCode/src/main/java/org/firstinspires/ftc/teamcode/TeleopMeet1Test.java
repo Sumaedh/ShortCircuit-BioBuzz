@@ -22,13 +22,13 @@ public class TeleopMeet1Test extends OpMode {
 
 
     public double ARM_UP = 0.0;
-    public double ARM_INTAKE_FLOWER = 0.475;
+    public double ARM_INTAKE_FLOWER = 0.46;
     public double ARM_BLOCK = 0.25;
 
 
     //TODO: FIND THIS
-    public double SHOT_BLOCKED = 0;
-    public double SHOT_OPEN = 0.15;
+    public static double SHOT_BLOCKED = 0.07;
+    public static double SHOT_OPEN = 0.09;
 
 
     public static double leftIntakeOn = 0.8;
@@ -60,6 +60,7 @@ public class TeleopMeet1Test extends OpMode {
     //1175
     public double curTargetVelocity = 0;
     public static double SHOOTER_TOLERANCE = 50;
+
 
     private void applyShooterPIDF() {
         PIDFCoefficients pidf = new PIDFCoefficients(pShooting, iShooting, dShooting, fShooting);
@@ -121,13 +122,12 @@ public class TeleopMeet1Test extends OpMode {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
 
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightIntakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         arm = hardwareMap.get(Servo.class, "arm");
         arm.setDirection(Servo.Direction.REVERSE);
 
         shotStopper = hardwareMap.get(Servo.class, "shotStopper");
-
-        stopShoot();
         armUp();
         intakeOff();
 
@@ -219,15 +219,25 @@ public class TeleopMeet1Test extends OpMode {
          */
 
 
+
         // INTAKE
         if (gamepad1.aWasPressed()) {
             intakeOn();
+            stopShoot();
         } else if (gamepad1.bWasPressed()) {
             intakeOff();
+            stopShoot();
         } else if (gamepad1.yWasPressed()) {
             intakeReverse();
         } else if (gamepad1.xWasPressed()) {
             transferShoot();
+            continueShoot();
+        }
+
+        if (gamepad1.dpadLeftWasPressed()) {
+            stopShoot();
+        } else if (gamepad1.dpadRightWasPressed()) {
+            continueShoot();
         }
 
 

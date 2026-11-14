@@ -14,13 +14,13 @@ public class IntakeTransferArm {
 
 
     public double ARM_UP = 0.0;
-    public double ARM_INTAKE_FLOWER = 0.482;
+    public double ARM_INTAKE_FLOWER = 0.46;
     public double ARM_BLOCK = 0.25;
 
 
     //TODO: FIND THIS
-    public double SHOT_BLOCKED = 0;
-    public double SHOT_OPEN = 0.15;
+    public double SHOT_BLOCKED = 0.04;
+    public double SHOT_OPEN = 0.09;
 
     public void initIntakeTransfer(HardwareMap hwMap) {
         rightIntakeMotor = hwMap.get(DcMotorEx.class, "rightIntakeMotor");
@@ -40,7 +40,7 @@ public class IntakeTransferArm {
 
     public void intakeOn() {
         leftIntakeMotor.setPower(0.8);
-        rightIntakeMotor.setPower(0.25);
+        rightIntakeMotor.setPower(0.17);
     }
 
     public void intakeOff() {
@@ -54,8 +54,8 @@ public class IntakeTransferArm {
     }
 
     public void transferShoot(){
-        leftIntakeMotor.setPower(0.3);
-        rightIntakeMotor.setPower(0.8);
+        leftIntakeMotor.setPower(1);
+        rightIntakeMotor.setPower(1);
     }
 
 
